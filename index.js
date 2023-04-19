@@ -1,139 +1,97 @@
-const express = require("express");
-const db = require("./db");
-const md5 = require('md5');
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
-
+// Require the necessary modules
+const express = require('express');
+const bodyParser = require('body-parser');
+const mysql = require('mysql2/promise');
+const crypto = require('crypto');
+// Create an instance of the Express app
 const app = express();
-app.set("view engine", "ejs");
 
-app.use(express.json()); // parsea el body
-app.use(express.urlencoded({ extended: true })); // parsea URL-encoded bodies
-app.use(cookieParser());
-app.use(
-    session({
-        secret: "la clave secreta de mi cookie",
-        resave: false,
-        saveUninitialized: false
-    })
-);
-
-app.get("/", (req, res, next) => {
-	res.send("Hola mundo");
+// create a MySQL connection pool
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '1234',
+  database: 'come_y_paga',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-//app.get("/", name, name2);
-
-app.get("/libros", (req, res, next) => {
-    // Simula una llamada a la BBDD
-    const libros = [
-        {
-            nombre: "libro 1",
-            precio: "14€"
-        },
-        {
-            nombre: "libro 2",
-            precio: "12€"
-        }
-    ];
-    res.status(200).json(libros);
-});
-
-app.get("/libreria", (req, res, next) => {
-    // Simula una llamada a la BBDD
-    const libros = [
-        {
-            nombre: "libro 1",
-            precio: "14€"
-        },
-        {
-            nombre: "libro 2",
-            precio: "12€"
-        }
-    ];
-    //res.render("libreria")
-    res.status(200).render("libreria", { libros: libros });
-});
-
-
-function estaLogeado(req, res, next) {
-    if (!req.session.hasOwnProperty("usuario")
-    || req.session.usuario != undefined // mala práctica?
-    || req.session.usuario != null) {
-        res.status(403).send("Estás entrando en una página privada. Tienes que pagar.");
-        return;
+// check the MySQL connection when the server starts
+(async () => {
+    try {
+      const connection = await pool.getConnection();
+      console.log('MySQL connected');
+      connection.release();
+    } catch (error) {
+      console.error('MySQL connection failed:', error);
+      process.exit(1);
     }
-    next();
-}
+  })();
 
-app.get("/users", estaLogeado, (req, res, next) => {
-    var sql = "select * from user";
-    var params = [ req.params.id ];
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.status(200).json(rows);
-    })
+// Set up the middleware
+app.use(express.static('public'));
+//app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+
+// Define routes
+app.get('/', (req, res) => {
+  res.render('login');
 });
 
-app.get("/users/:id", estaLogeado, (req, res, next) => {
-    var sql = "select * from user where id = ?";
-    var params = [ req.params.id ];
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.status(200).json(rows);
-    })
-});
+app.post('/login', (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-app.get("/login", (req, res, next) => {
-    if (req.session.hasOwnProperty("usuario")
-    && req.session.usuario != undefined
-    && req.session.usuario != null) {
-        res.redirect("/users"); // para ir a la página que queremos
-        return;
+    // encrypt the password with the MD5 algorithm
+    const hash = crypto.createHash('md5').update(password).digest('hex');
+
+    // perform a MySQL query to retrieve the user data based on the username and encrypted password
+    pool.query('SELECT * FROM usuario WHERE nombre_usuario = ? AND contrasena_usuario = ?', [username, hash], (error, results) => {
+    if (error) {
+        console.error(error);
+        return res.status(500).send('Internal Server Error');
     }
-    res.render("login");
+
+    if (results.length === 0) {
+        // no user found with the provided username and password
+        return res.status(401).send('Invalid username or password');
+    }
+
+    const user = results[0];
+    console.log(`User ${user.id} logged in`);
+
+    // redirect to the home page or dashboard
+    res.redirect('/home');
+    });
 });
 
-app.post("/login", (req, res, next) => {
-    const email = req.body.email;
-    const password = req.body.password; 
-
-    let sql = "select * from user where email = ?";
-    let params = [ email ];
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message }); // esto es una mala práctica
-            return;
-        }
-
-        // es que la consulta no ha "petado". Puede que devuelva 0 usuarios
-        if (rows.length < 1) {
-            res.status(500).json({ error: "usuario no encontrado" }); // esto es una mala práctica
-            return;
-        }
-
-        // ha encontrado uno o más usuarios con ese correo
-        const usuario = rows[0];
-        if (md5(password) == usuario.password) {
-            req.session.usuario = { email: email };
-            res.json(usuario);
-            return;
-        }
-        res.status(500).json({ error: "contraseña incorrecta" }); // esto es una mala práctica
-        return;
-    })
+app.get('/register', (req, res) => {
+  res.render('register');
 });
 
-app.get("/logout", (req, res, next) => {
-    console.log("Desconectado");
+app.post('/register', async (req, res) => {
+    const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
+    const year_nacimiento = new Date(req.body.year_nacimiento).getFullYear();
+    const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
+
+    try {
+        const connection = await pool.getConnection();
+        await connection.execute(
+        'INSERT INTO usuario (nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
+        );
+        connection.release();
+        res.render('register_success', { title: 'Registration successful' });
+    } catch (error) {
+        console.log(error);
+        res.render('register_error', { title: 'Error registering user' });
+    }
 });
 
+// Start the server
 app.listen(4000, () => {
-	console.log("Escuchando http://localhost:4000/");
+  console.log('Server is running on port 4000');
 });

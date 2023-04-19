@@ -1,19 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>LOG IN</h1>
-    <form action="login" method="post">
-        <label for="email">Correo electrónico</label>
-        <input type="email" name="email" id="email">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <div>
+      <img src="images/logo.png" alt="Logo">
+      <h1>¡Bienvenido a COME Y PAGA!</h1>
+      <form action="/login" method="post">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" name="username">
         <label for="password">Contraseña</label>
-        <input type="password" name="password" id="password">
-        <button type="submit">LOG IN</button>
-    </form>
-</body>
+        <input type="password" id="password" name="password">
+        <button type="submit">Iniciar sesión</button>
+      </form>
+      <p>¿Eres nuevo? Ve aquí:
+      <a style="background-color: #ffb121;
+        display: inline-block;
+        padding: 8px 12px;
+        font-size: 12px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/register">
+        Registrar
+      </a>
+      </p>
+    </div>
+  </body>
 </html>

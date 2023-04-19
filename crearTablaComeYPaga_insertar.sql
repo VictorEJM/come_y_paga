@@ -3,48 +3,49 @@ CREATE DATABASE IF NOT EXISTS come_y_paga;
 USE come_y_paga;
 
 CREATE TABLE IF NOT EXISTS usuario (
-id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
-apellidos VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
-year_nacimiento INT UNSIGNED NOT NULL DEFAULT 1,
-direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
-telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
-email VARCHAR(100) NOT NULL DEFAULT 'unknown@email.com',
-municipio VARCHAR(50) NOT NULL DEFAULT 'desconocido',
-nombre_usuario VARCHAR(50) NOT NULL UNIQUE DEFAULT 'anon',
-tipo_usuario ENUM('administrador', 'repartidor', 'cliente') NOT NULL DEFAULT 'cliente'
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
+  apellidos VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
+  year_nacimiento INT UNSIGNED NOT NULL DEFAULT 1,
+  direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
+  telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
+  email VARCHAR(100) NOT NULL DEFAULT 'unknown@email.com',
+  municipio VARCHAR(50) NOT NULL DEFAULT 'desconocido',
+  nombre_usuario VARCHAR(50) NOT NULL UNIQUE DEFAULT 'anon',
+  contrasena_usuario VARCHAR(128) NOT NULL DEFAULT '1234',
+  tipo_usuario ENUM('administrador', 'repartidor', 'cliente') NOT NULL DEFAULT 'cliente'
 );
 
 CREATE TABLE IF NOT EXISTS restaurante (
-id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
-tipo_comida VARCHAR(50) NOT NULL DEFAULT 'que_tipo_de_comida_es_esta?',
-direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
-telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
-email VARCHAR(100) NOT NULL DEFAULT 'unknown@email.com',
-tipologia VARCHAR(50) NOT NULL DEFAULT 'desconocida',
-logo VARCHAR(200) NOT NULL DEFAULT 'nologo',
-estrellas TINYINT UNSIGNED NOT NULL DEFAULT 0
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
+  tipo_comida VARCHAR(50) NOT NULL DEFAULT 'que_tipo_de_comida_es_esta?',
+  direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
+  telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
+  email VARCHAR(100) NOT NULL DEFAULT 'unknown@email.com',
+  tipologia VARCHAR(50) NOT NULL DEFAULT 'desconocida',
+  logo VARCHAR(200) NOT NULL DEFAULT 'nologo',
+  estrellas TINYINT UNSIGNED NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS plato (
-id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
-precio FLOAT NOT NULL DEFAULT 0.00,
-tipo ENUM('entrante', 'principal', 'postre', 'bebida') NOT NULL DEFAULT 'entrante',
-id_restaurante INT UNSIGNED NOT NULL,
-FOREIGN KEY (id_restaurante) REFERENCES restaurante(id)
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL DEFAULT 'Anonimo',
+  precio FLOAT NOT NULL DEFAULT 0.00,
+  tipo ENUM('entrante', 'principal', 'postre', 'bebida') NOT NULL DEFAULT 'entrante',
+  id_restaurante INT UNSIGNED NOT NULL,
+  FOREIGN KEY (id_restaurante) REFERENCES restaurante(id)
 );
 
 CREATE TABLE IF NOT EXISTS pedido (
-id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-id_usuario INT UNSIGNED NOT NULL,
-id_restaurante INT UNSIGNED NOT NULL,
-precio VARCHAR(10) NOT NULL DEFAULT 0.00,
-estado ENUM('pendiente', 'en proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
-platos TEXT NOT NULL,
-FOREIGN KEY (id_usuario) REFERENCES usuario(id),
-FOREIGN KEY (id_restaurante) REFERENCES restaurante(id)
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT UNSIGNED NOT NULL,
+  id_restaurante INT UNSIGNED NOT NULL,
+  precio VARCHAR(10) NOT NULL DEFAULT 0.00,
+  estado ENUM('pendiente', 'en proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
+  platos TEXT NOT NULL,
+  FOREIGN KEY (id_usuario) REFERENCES usuario(id),
+  FOREIGN KEY (id_restaurante) REFERENCES restaurante(id)
 );
 
 INSERT INTO usuario (nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, tipo_usuario)
