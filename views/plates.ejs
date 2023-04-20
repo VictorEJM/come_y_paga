@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Plates List</title>
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <h1>Welcome to the Plates List</h1>
+    <div class="user-info">
+        <span>Usuario: <%= session.user.name %> <%= session.user.lastName %></span>
+        <form method="POST" action="/logout">
+          <button type="submit">Cerrar sesión</button>
+        </form>
+    </div>
+    <% if (plates.length > 0) { %>
+      <ul>
+        <% plates.forEach(plate => { %>
+          <li><%= plate.nombre %> - $<%= plate.precio %></li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <p>No plates found.</p>
+    <% } %>
+  </body>
+</html>

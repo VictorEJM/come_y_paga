@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Restaurant List</title>
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <h1>Welcome to the Restaurant List</h1>
+    <div class="user-info">
+        <span>Usuario: <%= session.user.name %> <%= session.user.lastName %></span>
+        <form method="POST" action="/logout">
+          <button type="submit">Cerrar sesión</button>
+        </form>
+    </div>
+    <% if (restaurants.length > 0) { %>
+      <ul>
+        <% restaurants.forEach(restaurant => { %>
+          <li>
+            <a href="/plates/<%= restaurant.id %>"><%= restaurant.nombre %></a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <p>No restaurants found.</p>
+    <% } %>
+  </body>
+</html>

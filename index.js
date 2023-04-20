@@ -38,40 +38,37 @@ app.set('view engine', 'ejs');
 
 // Define routes
 app.get('/', (req, res) => {
-  res.render('login');
+  res.render('login', { error: null });
 });
 
+// LOGIN
 app.post('/login', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-
-    // encrypt the password with the MD5 algorithm
-    const hash = crypto.createHash('md5').update(password).digest('hex');
-
-    // perform a MySQL query to retrieve the user data based on the username and encrypted password
-    pool.query('SELECT * FROM usuario WHERE nombre_usuario = ? AND contrasena_usuario = ?', [username, hash], (error, results) => {
-    if (error) {
-        console.error(error);
-        return res.status(500).send('Internal Server Error');
+  const { username, password } = req.body;
+  const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
+  console.log('nombre_usuario:', username, 'contrasena_usuario:', hashedPassword);
+  
+  // TOFIX: ENTRAR A /restaurants SI NO MOSTRAR ERROR
+  console.log('req error?????: ', req);
+  //req.session.user = username;
+  pool.query('SELECT * FROM usuario WHERE nombre_usuario = ? AND contrasena_usuario = ?', [username, hashedPassword], (err, results) => {
+    if (err) {
+      console.log(err);
+      res.send('Error al intentar iniciar sesión');
+    } else if (results.length === 0) {
+      console.log('Incorrect username or password');
+      res.render('login', { error: 'El nombre de usuario o la contraseña son incorrectos' });
+    } else {
+      console.log('Successful login');
+      res.redirect('/restaurants');
     }
-
-    if (results.length === 0) {
-        // no user found with the provided username and password
-        return res.status(401).send('Invalid username or password');
-    }
-
-    const user = results[0];
-    console.log(`User ${user.id} logged in`);
-
-    // redirect to the home page or dashboard
-    res.redirect('/home');
-    });
+  });
 });
 
 app.get('/register', (req, res) => {
   res.render('register');
 });
 
+// REGISTRAR
 app.post('/register', async (req, res) => {
     const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
     const year_nacimiento = new Date(req.body.year_nacimiento).getFullYear();
@@ -84,11 +81,35 @@ app.post('/register', async (req, res) => {
         [nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
         );
         connection.release();
-        res.render('register_success', { title: 'Registration successful' });
+        // cuidado con la recta '-' , no es '_'
+        res.render('register-success', { title: 'Has sido registrado' });
     } catch (error) {
         console.log(error);
-        res.render('register_error', { title: 'Error registering user' });
+        res.render('register_error', { title: 'Error al registrar el usuario' });
     }
+});
+
+// RESTAURANTES
+app.get('/restaurants', async (req, res) => {
+  try {
+    const [rows, fields] = await pool.execute('SELECT * FROM restaurante');
+    res.render('restaurants', { restaurants: rows });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
+});
+
+// PLATOS DE UN RESTAURANTE
+app.get('/plates/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows, fields] = await pool.execute('SELECT * FROM plato WHERE id_restaurante = ?', [id]);
+    res.render('plates', { plates: rows });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
 });
 
 // Start the server

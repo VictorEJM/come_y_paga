@@ -9,6 +9,9 @@
     <div style="text-align: center;">
       <img src="images/logo.png" alt="Logo">
       <h1>¡Bienvenido a COME Y PAGA!</h1>
+      <% if (error) { %>
+        <div style="color: red;"><%= error %></div>
+      <% } %>
       <form action="/login" method="post">
         <label for="username">Usuario</label>
         <input type="text" id="username" name="username">
