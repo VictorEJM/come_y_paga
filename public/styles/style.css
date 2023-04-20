@@ -107,7 +107,7 @@ a {
 /* Media query for screens smaller than 768px */
 @media (max-width: 767px) {
     h1 {
-        font-size: 1.5em;
+        font-size: 1.25em;
     }
     label, input, button {
         font-size: 0.9em;
@@ -128,7 +128,9 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+    /*background-color: #f2f2f2;*/
+    background: rgb(255,121,74);
+    background: linear-gradient(0deg, rgba(255,121,74,1) 0%, rgba(255,198,110,1) 100%); 
 }
 
 h1 {
@@ -140,7 +142,9 @@ form {
     max-width: 500px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #fff;
+    /*background-color: #fff;*/
+    background: rgb(255,219,168);
+    background: linear-gradient(0deg, rgba(255,219,168,0.7875350823923319) 0%, rgba(255,217,159,1) 100%); 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -176,7 +180,7 @@ button[type=submit]:hover {
 
 @media (max-width: 480px) {
     form {
-        padding: 10px;
+        padding: 7px;
     }
 
     input[type=text], input[type=number], input[type=tel], input[type=email], input[type=password] {
@@ -185,7 +189,7 @@ button[type=submit]:hover {
     }
 
     button[type=submit] {
-        padding: 8px 16px;
+        padding: 8px 14px;
         font-size: 14px;
     }
 }
