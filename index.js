@@ -60,7 +60,7 @@ app.get('/plates/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const [rows, fields] = await pool.execute('SELECT * FROM plato WHERE id_restaurante = ?', [id]);
-    res.render('plates', { plates: rows });
+    res.render('plates', { plates: rows, user: req.session.user });
   } catch (error) {
     console.log(error);
     res.render('error');
