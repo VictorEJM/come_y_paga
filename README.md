@@ -6,12 +6,7 @@ Tratando de hacerlo en Flutter, NodeJS o algún framework que vaya más cómodo.
 ## Cómo instalar
 Necesitas NodeJS y seguir los siguientes comandos en la consola PowerShell:
 ```ps
-npm install express
-npm install ejs
-npm install md5 sqlite3
-npm install express-session
-npm install cookie-parser
-npm install mysql2
+npm install express ejs md5 sqlite3 express-session cookie-parser mysql2
 ```
 
 ## Cómo ejecutar el server
