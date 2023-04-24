@@ -27,6 +27,9 @@
       <input type="text" id="nombre_usuario" name="nombre_usuario" required>
       <label for="contrasena_usuario">Contraseña:</label>
       <input type="password" id="contrasena_usuario" name="contrasena_usuario" required>
+      <% if (error) { %>
+        <div style="color: red;"><%= error %></div>
+      <% } %>
       <button type="submit">Registrar</button>
       <a style="background-color: #219bff;
         display: inline-block;
