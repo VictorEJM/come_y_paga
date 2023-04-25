@@ -119,15 +119,27 @@ app.post('/logout', (req, res) => {
       {
         console.error('LOGOUT ERROR: ', err);
         //res.status(400).send('Unable to log out');
-      } else res.send('Logout successful');
+      } else {
+        //res.send('Logout successful');
+        res.redirect('/');
+      }
     });
   } else res.end();
   console.log('Logout finished!');
-  res.redirect('/login');
 });
 
 app.get('/register', (req, res) => {
-  res.render('register', { error: null });
+  res.render('register', { error: '',
+      nombre: '', 
+      apellidos: '', 
+      year_nacimiento: '', 
+      direccion: '', 
+      telefono: '', 
+      email: '', 
+      municipio: '', 
+      nombre_usuario: '', 
+      contrasena_usuario: ''
+    });
 });
 
 // REGISTRAR
@@ -136,36 +148,37 @@ app.post('/register', async (req, res) => {
   const year_nacimiento = new Date(req.body.year_nacimiento).getFullYear();
   const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
   const username_str = nombre_usuario.toLowerCase();
+  const direccionRegex = /^\s*(?=.{5,100}$).*$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   var errPhrase = "";
   var hasError = false;
 
-  if (nombre.length < 3 || nombre.length > 50) {
+  if (nombre.trim().length < 3 || nombre.trim().length > 50) {
     errPhrase += 'El nombre no puede ser menor de 3 carácteres ni puede estar vacío.\n';
     hasError = true;
   }
-  if (apellidos.length < 3 || apellidos.length > 50) {
+  if (apellidos.trim().length < 3 || apellidos.trim().length > 50) {
     errPhrase += 'En los apellidos, no puede ser menor de 3 carácteres ni puede estar vacío.\n';
     hasError = true;
   }
   if (year_nacimiento.length < 3 || year_nacimiento.length > 5) {
-    errPhrase += 'En los apellidos, no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    errPhrase += 'La fecha no puede estar vací.\n';
     hasError = true;
   }
-  if (direccion.length < 5 || direccion.length > 99) {
-    errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacío.\n';
+  if (!direccion || !direccion.match(direccionRegex)) {
+    errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacía.\n';
     hasError = true;
   }
-  if (!isNumeric(telefono) || telefono.length < 4 || telefono.length > 16) {
+  if (!isNumeric(telefono.trim()) || telefono.trim().length < 4 || telefono.trim().length > 16) {
     errPhrase += 'El teléfono tiene que ser númerico, no puede ser menor de 4, ni mayor de 16 carácteres, ni puede estar vacío.\n';
     hasError = true;
   }
-  if (emailRegex.test(email)) {
-    errPhrase += 'La dirección no puede ser menor de 5 carácteres ni puede estar vacía.\n';
+  if (!email || !email.match(emailRegex)) {
+    errPhrase += 'El email no coincide o está vacío.\n';
     hasError = true;
   }
-  if (municipio.length < 2 || municipio.length > 50) {
+  if (municipio.trim().length < 2 || municipio.trim().length > 50) {
     errPhrase += 'El municipio no puede ser menor de 2 carácteres, ni mayor de 50 carácteres, ni puede estar vacío.\n';
     hasError = true;
   }
@@ -173,7 +186,7 @@ app.post('/register', async (req, res) => {
     errPhrase += 'El nombre de usuario no puede ser menor de 3 carácteres ni puede estar vacío.\n';
     hasError = true;
   }
-  if (contrasena_usuario.length < 4 || contrasena_usuario.length > 60) {
+  if (contrasena_usuario.trim().length < 4 || contrasena_usuario.trim().length > 60) {
     errPhrase += 'La contraseña no puede ser menor de 5 carácteres, ni mayor de 60 carácteres, ni puede estar vacía.\n';
     hasError = true;
   }
@@ -181,7 +194,17 @@ app.post('/register', async (req, res) => {
   if (hasError)
   {
     //document.getElementById("error").innerHTML = "";
-    res.render('register', { error: errPhrase });
+    res.render('register', { error: errPhrase, 
+      nombre: nombre ?? '', 
+      apellidos: apellidos ?? '', 
+      year_nacimiento: req.body.year_nacimiento ?? '',
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      municipio: municipio ?? '', 
+      nombre_usuario: nombre_usuario ?? '', 
+      contrasena_usuario: contrasena_usuario ?? ''
+    });
     return;
   }
 
@@ -196,7 +219,17 @@ app.post('/register', async (req, res) => {
       'INSERT INTO usuario (nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
       );
-    } else res.render('register', { error: 'Ese usuario ya existe' });
+    } else res.render('register', { error: 'Ese usuario ya existe',
+      nombre: nombre ?? '', 
+      apellidos: apellidos ?? '', 
+      year_nacimiento: req.body.year_nacimiento ?? '',
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      municipio: municipio ?? '', 
+      nombre_usuario: nombre_usuario ?? '', 
+      contrasena_usuario: contrasena_usuario ?? ''
+    });
     connection.release();
     // cuidado con la recta '-' , no es '_'
     res.render('register-success', { title: 'Has sido registrado' });

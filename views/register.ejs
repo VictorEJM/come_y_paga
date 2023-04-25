@@ -9,24 +9,24 @@
     <h1>Rellene los datos para registrar</h1>
     <form action="/register" method="post">
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" name="nombre" required>
+      <input type="text" id="nombre" name="nombre" value="<%= nombre %>" required>
       <label for="apellidos">Apellidos:</label>
-      <input type="text" id="apellidos" name="apellidos" required>
+      <input type="text" id="apellidos" name="apellidos" value="<%= apellidos %>" required>
       <label for="year_nacimiento">Fecha de nacimiento:</label>
-      <input type="date" id="year_nacimiento" name="year_nacimiento" required
+      <input type="date" id="year_nacimiento" name="year_nacimiento" value="<%= year_nacimiento %>" required
             min="1900-01-01" max="2600-01-01" value="2000-01">
       <label for="direccion">Dirección:</label>
-      <input type="text" id="direccion" name="direccion" required>
+      <input type="text" id="direccion" name="direccion" value="<%= direccion %>" required>
       <label for="telefono">Teléfono:</label>
-      <input type="tel" id="telefono" name="telefono" required>
+      <input type="tel" id="telefono" name="telefono" value="<%= telefono %>" required>
       <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required>
+      <input type="email" id="email" name="email" value="<%= email %>" required>
       <label for="municipio">Municipio:</label>
-      <input type="text" id="municipio" name="municipio" required>
+      <input type="text" id="municipio" name="municipio" value="<%= municipio %>" required>
       <label for="nombre_usuario">Nombre de usuario:</label>
-      <input type="text" id="nombre_usuario" name="nombre_usuario" required>
+      <input type="text" id="nombre_usuario" name="nombre_usuario" value="<%= nombre_usuario %>" required>
       <label for="contrasena_usuario">Contraseña:</label>
-      <input type="password" id="contrasena_usuario" name="contrasena_usuario" required>
+      <input type="password" id="contrasena_usuario" name="contrasena_usuario" value="<%= contrasena_usuario %>" required>
       <% if (error) { %>
         <div style="color: red;"><%= error %></div>
       <% } %>
