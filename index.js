@@ -123,10 +123,12 @@ app.post('/logout', (req, res) => {
       if (err)
       {
         console.error('LOGOUT ERROR: ', err);
+        res.render('error');
         //res.status(400).send('Unable to log out');
       } else {
         //res.send('Logout successful');
-        res.redirect('/login');
+        res.render('logout-success', { title: 'Por favor, espere...' });
+        //res.redirect('/login');
       }
     });
   } else res.end();
@@ -135,26 +137,27 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   res.render('register', { error: '',
-      nombre: '', 
-      apellidos: '', 
-      year_nacimiento: '', 
-      direccion: '', 
-      telefono: '', 
-      email: '', 
-      municipio: '', 
-      nombre_usuario: '', 
-      contrasena_usuario: ''
-    });
+    nombre: '', 
+    apellidos: '', 
+    fecha_nacimiento: '', 
+    direccion: '', 
+    telefono: '', 
+    email: '', 
+    municipio: '', 
+    nombre_usuario: '', 
+    contrasena_usuario: ''
+  });
 });
 
 // REGISTRAR
 app.post('/register', async (req, res) => {
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
-  const year_nacimiento = new Date(req.body.year_nacimiento).getFullYear();
+  const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
   const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
   const username_str = nombre_usuario.toLowerCase();
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const dateObj = new Date(req.body.fecha_nacimiento);
 
   var errPhrase = "";
   var hasError = false;
@@ -167,15 +170,15 @@ app.post('/register', async (req, res) => {
     errPhrase += 'En los apellidos, no puede ser menor de 3 carácteres ni puede estar vacío.\n';
     hasError = true;
   }
-  if (year_nacimiento.length < 3 || year_nacimiento.length > 5) {
-    errPhrase += 'La fecha no puede estar vací.\n';
+  if (!fecha_nacimiento || isNaN(dateObj.getTime())) {
+    errPhrase += 'La fecha no es válida.\n';
     hasError = true;
   }
   if (!direccion || !direccion.match(direccionRegex)) {
     errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacía.\n';
     hasError = true;
   }
-  if (!isNumeric(telefono.trim()) || telefono.trim().length < 4 || telefono.trim().length > 16) {
+  if (!isNumeric(telefono.trim()) || telefono.trim().length < 9 || telefono.trim().length > 16) {
     errPhrase += 'El teléfono tiene que ser númerico, no puede ser menor de 4, ni mayor de 16 carácteres, ni puede estar vacío.\n';
     hasError = true;
   }
@@ -202,7 +205,7 @@ app.post('/register', async (req, res) => {
     res.render('register', { error: errPhrase, 
       nombre: nombre ?? '', 
       apellidos: apellidos ?? '', 
-      year_nacimiento: req.body.year_nacimiento ?? '',
+      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
       direccion: direccion ?? '', 
       telefono: telefono ?? '', 
       email: email ?? '', 
@@ -221,13 +224,13 @@ app.post('/register', async (req, res) => {
     );
     if (rows.length === 0) {
       await connection.execute(
-      'INSERT INTO usuario (nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, apellidos, year_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
+      'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
       );
     } else res.render('register', { error: 'Ese usuario ya existe',
       nombre: nombre ?? '', 
       apellidos: apellidos ?? '', 
-      year_nacimiento: req.body.year_nacimiento ?? '',
+      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
       direccion: direccion ?? '', 
       telefono: telefono ?? '', 
       email: email ?? '', 
@@ -236,11 +239,10 @@ app.post('/register', async (req, res) => {
       contrasena_usuario: contrasena_usuario ?? ''
     });
     connection.release();
-    // cuidado con la recta '-' , no es '_'
     res.render('register-success', { title: 'Has sido registrado' });
   } catch (error) {
     console.log(error);
-    res.render('register_error', { title: 'Error al registrar el usuario' });
+    res.render('register-error', { title: 'Error al registrar el usuario' });
   }
 });
 

@@ -12,8 +12,8 @@
       <input type="text" id="nombre" name="nombre" value="<%= nombre %>" required>
       <label for="apellidos">Apellidos:</label>
       <input type="text" id="apellidos" name="apellidos" value="<%= apellidos %>" required>
-      <label for="year_nacimiento">Fecha de nacimiento:</label>
-      <input type="date" id="year_nacimiento" name="year_nacimiento" value="<%= year_nacimiento %>" required
+      <label for="fecha_nacimiento">Fecha de nacimiento:</label>
+      <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<%= fecha_nacimiento %>" required
             min="1900-01-01" max="2600-01-01" value="2000-01">
       <label for="direccion">Dirección:</label>
       <input type="text" id="direccion" name="direccion" value="<%= direccion %>" required>
@@ -31,15 +31,17 @@
         <div style="color: red;"><%= error %></div>
       <% } %>
       <button type="submit">Registrar</button>
-      <a style="background-color: #219bff;
-        display: inline-block;
-        padding: 8px 16px;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        color: #fff;" href="/">
-        Volver
-      </a>
     </form>
+      <div class="button_bottom">
+        <a style="background-color: #0485cf;
+          display: inline-block;
+          padding: 5% 50%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;
+          color: #fff;" href="/login">
+          Volver
+        </a>
+      </div>
   </body>
 </html>

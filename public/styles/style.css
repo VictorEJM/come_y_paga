@@ -24,7 +24,6 @@ body {
 }
 
 .button_bottom {
-    width: 100%;
     margin: 0 auto;
     position: fixed;
     bottom: 0;

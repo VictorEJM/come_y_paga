@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>Logout</title>
+  </head>
+  <body>
+      <p><%= title %></p>
+      <!-- 
+        <p class="redirect">Serás redirigido a la página de inicio de sesión en <span id="countdown">1</span> segundos.</p>
+      -->
+    <script>
+      // redirect to the home page after 1 second
+      let countdown = 1;
+      setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          window.location.href = '/';
+        } else {
+          document.getElementById('countdown').innerText = countdown;
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>
