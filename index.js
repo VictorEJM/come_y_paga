@@ -70,7 +70,9 @@ app.get('/plates/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const [rows, fields] = await pool.execute('SELECT * FROM plato WHERE id_restaurante = ?', [id]);
-    res.render('plates', { plates: rows, user: req.session.user });
+    const [restaurant, fields2] = await pool.execute('SELECT * FROM restaurante WHERE id = ?', [id]);
+    //console.log('restaurant: ' + restaurant[0]);
+    res.render('plates', { plates: rows, user: req.session.user, restaurant: restaurant[0] });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -78,6 +80,10 @@ app.get('/plates/:id', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
+  res.render('login', { error: null });
+});
+
+app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
@@ -110,7 +116,6 @@ app.post('/login', async (req, res) => {
 });
 
 
-// TOFIX: CERRAR SESIÓN E IR A LOGIN
 // LOGOUT
 app.post('/logout', (req, res) => {
   if (req.session) {
@@ -121,7 +126,7 @@ app.post('/logout', (req, res) => {
         //res.status(400).send('Unable to log out');
       } else {
         //res.send('Logout successful');
-        res.redirect('/');
+        res.redirect('/login');
       }
     });
   } else res.end();

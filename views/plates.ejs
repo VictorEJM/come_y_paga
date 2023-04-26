@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <title>Platos</title>
-    <link rel="stylesheet" href="styles/style.css">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>Platos <%= restaurant.nombre %></title>
+    <link rel="stylesheet" href="/styles/style.css">
   </head>
   <body>
-    <h1>PLATOS</h1>
+    <h1>PLATOS DEL RESTAURANTE <br/><%= restaurant.nombre %></h1>
     <div class="user-info">
       <span>Usuario: <%= user %></span>
       <form method="POST" action="/logout">
@@ -22,5 +22,16 @@
     <% } else { %>
       <p>No plates found.</p>
     <% } %>
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 5% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/restaurants">
+        Volver
+      </a>
+    </div>
   </body>
 </html>

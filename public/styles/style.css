@@ -1,6 +1,17 @@
 /* General styles */
+html {
+    font-family: Arial, sans-serif;
+    background: rgb(255,121,74);
+    background: linear-gradient(0deg, rgba(255,121,74,1) 0%, rgba(255,198,110,1) 100%); 
+}
+
 body {
     font-family: Arial, sans-serif;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .container {
@@ -10,6 +21,15 @@ body {
     background-color: #fff;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.button_bottom {
+    width: 100%;
+    margin: 0 auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 h1 {
