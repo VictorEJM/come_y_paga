@@ -17,7 +17,31 @@
       <ul>
         <% restaurants.forEach(restaurant => { %>
           <li>
-            <a href="/plates/<%= restaurant.id %>"><%= restaurant.nombre %></a>
+            <a href="/plates/<%= restaurant.id %>">
+              <img src="images/restaurant/<%= restaurant.id %>.jpg" alt="<%= restaurant.id %>" width="300" height="200" />
+              <%= restaurant.nombre %> <br/>
+              <%= restaurant.tipo_comida %> <br/>
+              <%= restaurant.direccion %> <br/>
+              <%= restaurant.telefono %> <br/>
+
+              <% if (restaurant.estrellas.length > 0) { %>
+                <% restaurant.estrellas.forEach(star => { %>
+                  <!-- TODO: AÑADIR ESTRELLAS Y SI SON 3, AÑADE 2 DE VACÍAS <img src="images/star.png" alt="star" width="200" /> -->
+                  <div style="border-width: 1px;
+                    border-color: rgb(117, 173, 116);
+                    border-style: solid;
+                    border-radius: 50%;
+                    position: absolute;
+                    left: 92px;
+                    top: 239px;
+                    width: 12px;
+                    height: 13px;
+                    z-index: 221;">
+                  </div>
+                  
+                <% }); %>
+              <% } %>
+            </a>
           </li>
         <% }); %>
       </ul>
