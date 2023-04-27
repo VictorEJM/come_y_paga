@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Editar usuario</title>
+	<link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+	<h1>Editar usuario</h1>
+
+	<form method="POST" action="/admin/update">
+		<input type="hidden" name="id" value="<%= user.id %>">
+
+		<label for="nombre">Nombre:</label>
+		<input type="text" name="nombre" value="<%= user.nombre %>" required>
+
+		<label for="apellidos">Apellidos:</label>
+		<input type="text" name="apellidos" value="<%= user.apellidos %>" required>
+
+		<label for="fecha_nacimiento">Fecha de nacimiento:</label>
+		<input type="date" name="fecha_nacimiento" value="<%= user.fecha_nacimiento %>" required>
+
+		<label for="direccion">Dirección:</label>
+		<input type="text" name="direccion" value="<%= user.direccion %>" required>
+
+		<label for="telefono">Teléfono:</label>
+		<input type="tel" name="telefono" value="<%= user.telefono %>" required>
+
+		<label for="email">Correo electrónico:</label>
+		<input type="email" name="email" value="<%= user.email %>" required>
+
+		<label for="municipio">Municipio:</label>
+		<input type="text" name="municipio" value="<%= user.municipio %>" required>
+
+		<label for="nombre_usuario">Nombre de usuario:</label>
+		<input type="text" name="nombre_usuario" value="<%= user.nombre_usuario %>" required>
+
+		<label for="contrasena_usuario">Contraseña:</label>
+		<input type="password" name="contrasena_usuario" required>
+
+		<label for="tipo_usuario">Tipo de usuario:</label>
+		<select name="tipo_usuario" required>
+			<option value="administrador" <%= user.tipo_usuario === 'administrador' ? 'selected' : '' %>>Administrador</option>
+			<option value="repartidor" <%= user.tipo_usuario === 'repartidor' ? 'selected' : '' %>>Repartidor</option>
+			<option value="cliente" <%= user.tipo_usuario === 'cliente' ? 'selected' : '' %>>Cliente</option>
+		</select>
+
+		<button type="submit">Guardar cambios</button>
+	</form>
+</body>
+</html>

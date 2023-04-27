@@ -246,6 +246,60 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// ADMINISTRACIÓN
+// TODO: PROBAR Y HACER ALGUNOS AJUSTES, SOLO HAY TABLA DE usuario, FALTAN LAS DEMÁS
+
+app.get('/admin', async (req, res) => {
+  connection.query('SELECT * FROM usuario', function(error, results, fields) {
+    if (error) throw error;
+    res.render('admin', { users: results });
+  });
+});
+
+// Agregar usuario
+app.post('/admin/add', function(req, res) {
+  // Obtener los datos del formulario
+  const { nombre, correo, password } = req.body;
+  // Insertar los datos en la tabla de usuario
+  connection.query('INSERT INTO usuario (nombre, email, contrasena_usuario) VALUES (?, ?, ?)', [nombre, correo, password], function(error, results, fields) {
+    if (error) throw error;
+    res.redirect('/admin');
+  });
+});
+
+// Editar usuario
+app.post('/admin/edit', function(req, res) {
+  // Obtener el ID del usuario a editar
+  const id = req.body.id;
+  // Obtener los datos del usuario
+  connection.query('SELECT * FROM usuario WHERE id = ?', [id], function(error, results, fields) {
+    if (error) throw error;
+    res.render('edit', { user: results[0] });
+  });
+});
+
+// Actualizar usuario
+app.post('/admin/update', function(req, res) {
+  // Obtener los datos del formulario
+  const { id, nombre, correo, password } = req.body;
+  // Actualizar los datos del usuario en la tabla de usuario
+  connection.query('UPDATE usuario SET nombre = ?, email = ?, contrasena_usuario = ? WHERE id = ?', [nombre, correo, password, id], function(error, results, fields) {
+    if (error) throw error;
+    res.redirect('/admin');
+  });
+});
+
+// Eliminar usuario
+app.post('/admin/delete', function(req, res) {
+  // Obtener el ID del usuario a eliminar
+  const id = req.body.id;
+  // Eliminar el usuario de la tabla de usuario
+  connection.query('DELETE FROM usuario WHERE id = ?', [id], function(error, results, fields) {
+    if (error) throw error;
+    res.redirect('/admin');
+  });
+});
+
 // Start the server
 app.listen(4000, () => {
   console.log('Server is running on port 4000');
