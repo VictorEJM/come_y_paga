@@ -104,10 +104,18 @@ app.post('/login', async (req, res) => {
       res.render('login', { error: 'El nombre de usuario o la contraseña son incorrectos' });
     } else {
       console.log('Successful login');
-      res.redirect('/restaurants');
       req.session.user = username;
       //req.session.admin = true;
       req.session.save(); // guardar datos de sesión del usuario
+      
+      // Redirigir al usuario según su tipo de usuario
+      if (rows[0].tipo_usuario === 'administrador') {
+        res.redirect('/admin');
+      } else if (rows[0].tipo_usuario === 'repartidor') {
+        res.redirect('/repartidor');
+      } else {
+        res.redirect('/restaurants');
+      }
     }
   } catch (error) {
     console.error('LOGIN ERROR: ', error);

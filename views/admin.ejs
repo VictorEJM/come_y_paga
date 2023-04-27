@@ -7,15 +7,52 @@
 </head>
 <body>
 	<h1>Panel de administración</h1>
+	
+	<script>
+		function mostrarFormularioUsuarios() {
+			window.open("", "myWindow", "width=300,height=300");
+			document.getElementById("formulario-add").style.display = "block";
+		}
+	</script>
+	<button style="width: 7px;" onclick="mostrarFormularioUsuarios()">+</button>
 
+	<!-- Formulario para agregar usuarios -->
+	<form id="formulario-add" method="POST" action="/admin/add" style="display:none;">
+		<label for="nombre">nombre:</label>
+		<input type="text" name="nombre" required>
+		<label for="fecha_nacimiento">fecha_nacimiento:</label>
+		<input type="text" name="fecha_nacimiento" required>
+		<label for="direccion">direccion:</label>
+		<input type="text" name="direccion" required>
+		<label for="telefono">telefono:</label>
+		<input type="text" name="telefono" required>
+		<label for="email">email:</label>
+		<input type="email" name="email" required>
+		<label for="municipio">municipio:</label>
+		<input type="text" name="municipio" required>
+		<label for="nombre_usuario">nombre_usuario:</label>
+		<input type="text" name="nombre_usuario" required>
+		<label for="contrasena_usuario">contrasena_usuario:</label>
+		<input type="text" name="contrasena_usuario" required>
+		<label for="tipo_usuario">tipo_usuario:</label>
+		<input type="text" name="tipo_usuario" required>
+		<button type="submit">Agregar usuario</button>
+	</form>
+	
 	<!-- Tabla de usuarios -->
 	<table>
 		<thead>
 			<tr>
-				<th>ID</th>
-				<th>Nombre</th>
-				<th>Correo electrónico</th>
-				<th>Contraseña</th>
+				<th>id</th>
+				<th>nombre</th>
+				<th>fecha_nacimiento</th>
+				<th>direccion</th>
+				<th>telefono</th>
+				<th>email</th>
+				<th>municipio</th>
+				<th>nombre_usuario</th>
+				<th>contrasena_usuario</th>
+				<th>tipo_usuario</th>
 				<th>Acciones</th>
 			</tr>
 		</thead>
@@ -24,8 +61,14 @@
 				<tr>
 					<td><%= user.id %></td>
 					<td><%= user.nombre %></td>
-					<td><%= user.correo %></td>
-					<td><%= user.password %></td>
+					<td><%= user.fecha_nacimiento %></td>
+					<td><%= user.direccion %></td>
+					<td><%= user.telefono %></td>
+					<td><%= user.email %></td>
+					<td><%= user.municipio %></td>
+					<td><%= user.nombre_usuario %></td>
+					<td><%= user.contrasena_usuario %></td>
+					<td><%= user.tipo_usuario %></td>
 					<td>
 						<!-- Botones de acción -->
 						<form method="POST" action="/admin/edit">
@@ -41,16 +84,5 @@
 			<% }); %>
 		</tbody>
 	</table>
-
-	<!-- Formulario para agregar usuarios -->
-	<form method="POST" action="/admin/add">
-		<label for="nombre">Nombre:</label>
-		<input type="text" name="nombre" required>
-		<label for="correo">Correo electrónico:</label>
-		<input type="email" name="correo" required>
-		<label for="password">Contraseña:</label>
-		<input type="password" name="password" required>
-		<button type="submit">Agregar usuario</button>
-	</form>
 </body>
 </html>

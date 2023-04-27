@@ -8,45 +8,48 @@
   <body>
     <h1>RESTAURANTES</h1>
     <div class="user-info">
-        <span>Usuario: <%= user %></span>
-        <form method="POST" action="/logout">
-          <button type="submit">Cerrar sesión</button>
-        </form>
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      <span>
+        <img src="images/user.png" alt="user" width="40" />
+        <%= user %>
+      </span>
+      <form method="POST" action="/logout">
+        <button type="submit">Cerrar sesión</button>
+      </form>
     </div>
+    <div style="padding: 8px 16px; text-align: center;">
     <% if (restaurants.length > 0) { %>
-      <ul>
         <% restaurants.forEach(restaurant => { %>
-          <li>
-            <a href="/plates/<%= restaurant.id %>">
-              <img src="images/restaurant/<%= restaurant.id %>.jpg" alt="<%= restaurant.id %>" width="300" height="200" />
+            <a href="/plates/<%= restaurant.id %>" class="button_restaurant"
+              style="display: inline-block;
+                padding: 8px 16px;
+                background-color: #faca83;
+                color: #000000;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                border-radius: 4px;
+                cursor: pointer;">
+              <img src="images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" width="300" height="200" />
               <%= restaurant.nombre %> <br/>
               <%= restaurant.tipo_comida %> <br/>
               <%= restaurant.direccion %> <br/>
               <%= restaurant.telefono %> <br/>
 
-              <% if (restaurant.estrellas.length > 0) { %>
-                <% restaurant.estrellas.forEach(star => { %>
-                  <!-- TODO: AÑADIR ESTRELLAS Y SI SON 3, AÑADE 2 DE VACÍAS <img src="images/star.png" alt="star" width="200" /> -->
-                  <div style="border-width: 1px;
-                    border-color: rgb(117, 173, 116);
-                    border-style: solid;
-                    border-radius: 50%;
-                    position: absolute;
-                    left: 92px;
-                    top: 239px;
-                    width: 12px;
-                    height: 13px;
-                    z-index: 221;">
-                  </div>
-                  
-                <% }); %>
+              <% for (let i = 1; i <= 5 + 1; i++) { %>
+                <% const starNum = i - 1 %>
+                <% if (starNum < restaurant.estrellas) { %>
+                  <img src="images/star.png" alt="star" width="30px" />
+                <% } %>
+                <% if (starNum > restaurant.estrellas) { %>
+                  <img src="images/star_empty.png" alt="no_star" width="30px" />
+                <% } %>
               <% } %>
             </a>
-          </li>
         <% }); %>
-      </ul>
     <% } else { %>
-      <p>No restaurants found.</p>
+      <p>No se ha encontrado ningún restaurante.</p>
     <% } %>
+    </div>
   </body>
 </html>
