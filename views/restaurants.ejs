@@ -4,6 +4,13 @@
     <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Restaurantes</title>
     <link rel="stylesheet" href="styles/style.css">
+    <style>
+      @media only screen and (min-width: 400px) {
+        .divRestauranteButton[style*="max-width: 400px"] {
+          width: 82%;
+        }
+      }
+    </style>
     <script>
       function tabFunctionResponsiveEnable() {
         var x = document.getElementById("TopNavHome");
@@ -17,64 +24,76 @@
   </head>
   <body>
     <h1>RESTAURANTES</h1>
+
     <div class="topnavhome" id="TopNavHome">
-      <form method="POST" action="/logout">
-        <button type="submit">
-          <a href="#home" class="active">
-              Cerrar sesión
-            <img src="images/logout.png" alt="logout" width="20" />
-          </a>
-        </button>
-      </form>
-      <a href="#home" class="active">
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      
+      <a class="active">
+        <img src="images/user.png" alt="user" width="15" />
+      </a>
+      <a class="active">
         <%= user %>
       </a>
       <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
         <i class="fa fa-bars"></i>
       </a>
-    </div>
-    <div class="user-info">
-      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
-      
-      <form method="POST" action="/logout">
+    <form method="POST" action="/logout">
         <button type="submit">
-          Cerrar sesión
+          <p style="text-align: center;">
+            <img src="images/logout.png" alt="logout" width="20" />
+            Cerrar sesión
+          </p>
         </button>
       </form>
     </div>
-    <div style="padding: 8px 16px; text-align: center;">
-    <% if (restaurants.length > 0) { %>
-        <% restaurants.forEach(restaurant => { %>
-            <a href="/plates/<%= restaurant.id %>" class="button_restaurant"
-              style="display: inline-block;
-                padding: 8px 16px;
-                background-color: #faca83;
-                color: #000000;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                border-radius: 4px;
-                cursor: pointer;">
-              <img src="images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" width="300" height="200" />
-              <%= restaurant.nombre %> <br/>
-              <%= restaurant.tipo_comida %> <br/>
-              <%= restaurant.direccion %> <br/>
-              <%= restaurant.telefono %> <br/>
 
-              <% for (let i = 1; i <= 5 + 1; i++) { %>
-                <% const starNum = i - 1 %>
-                <% if (starNum < restaurant.estrellas) { %>
-                  <img src="images/star.png" alt="star" width="30px" />
-                <% } %>
-                <% if (starNum > restaurant.estrellas) { %>
-                  <img src="images/star_empty.png" alt="no_star" width="30px" />
-                <% } %>
-              <% } %>
-            </a>
+    <div class="divRestauranteButton" style="padding: 8px 16px; text-align: center; 
+      display: flex; flex-direction: column; 
+      justify-content: space-between; 
+      width: 80%; max-width: 400px;">
+      <% if (restaurants.length > 0) { %>
+        <% restaurants.forEach(restaurant => { %>
+          <a href="/plates/<%= restaurant.id %>" class="button_restaurant"
+            style="display: flex;
+            padding: 8px 16px;
+            width: 100%;
+            background: rgb(255,219,168);
+            background: linear-gradient(0deg, rgba(255,219,168,0.7875350823923319) 0%, rgb(44, 255, 107) 100%); 
+            color: #000000;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;">
+            <div style="flex: 1; display: flex;">
+              <div style="width: 30%; position: relative;">
+                <img src="images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%;">
+              </div>
+              <div style="width: 50%; display: flex; flex-direction: column; padding-left: 8px; position: relative;">
+                <div><b><%= restaurant.nombre %></b></div>
+                <div><%= restaurant.tipo_comida %></div>
+                <div><%= restaurant.direccion %></div>
+                <div><%= restaurant.telefono %></div>
+                <div>
+                  <% for (let i = 1; i <= 5 + 1; i++) { %>
+                    <% const starNum = i - 1 %>
+                    <% if (starNum < restaurant.estrellas) { %>
+                      <img src="images/star.png" alt="star" width="20px" />
+                    <% } %>
+                    <% if (starNum > restaurant.estrellas) { %>
+                      <img src="images/star_empty.png" alt="no_star" width="20px" />
+                    <% } %>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </a>
         <% }); %>
-    <% } else { %>
-      <p>No se ha encontrado ningún restaurante.</p>
-    <% } %>
+      <% } else { %>
+        <p>No se ha encontrado ningún restaurante.</p>
+        <br/>
+      <% } %>
     </div>
+    
   </body>
 </html>

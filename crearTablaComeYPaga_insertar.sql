@@ -1,5 +1,5 @@
 DROP DATABASE IF EXISTS come_y_paga;
-CREATE DATABASE IF NOT EXISTS come_y_paga;
+CREATE DATABASE IF NOT EXISTS come_y_paga CHARACTER SET utf8mb4;
 USE come_y_paga;
 
 CREATE TABLE IF NOT EXISTS usuario (
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   nombre_usuario VARCHAR(50) NOT NULL UNIQUE DEFAULT 'anon',
   contrasena_usuario VARCHAR(128) NOT NULL DEFAULT '1234',
   tipo_usuario ENUM('administrador', 'repartidor', 'cliente') NOT NULL DEFAULT 'cliente'
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS restaurante (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS restaurante (
   tipologia VARCHAR(50) NOT NULL DEFAULT 'desconocida',
   logo TEXT NOT NULL,
   estrellas TINYINT UNSIGNED NOT NULL DEFAULT 0
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS plato (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS plato (
   tipo ENUM('entrante', 'principal', 'postre', 'bebida') NOT NULL DEFAULT 'entrante',
   id_restaurante INT UNSIGNED NOT NULL,
   FOREIGN KEY (id_restaurante) REFERENCES restaurante(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pedido (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS pedido (
   platos TEXT NOT NULL,
   FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (id_restaurante) REFERENCES restaurante(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario, tipo_usuario)
 VALUES
@@ -59,8 +59,8 @@ VALUES
 
 INSERT INTO restaurante (nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas) 
 VALUES 
-  ('La Terraza', 'Mediterranea', 'Calle de la Plaza 3', '+34 910123456', 'laterraza@email.com', 'Terraza', 'terrazalogo.png', 4),
-  ('El Rincón', 'Asiática', 'Calle del Mar 15', '+34 910789012', 'elrincon@email.com', 'Restaurante', 'rinconlogo.png', 3);
+  ('La Terraza', 'Mediterranea', 'Calle de la Plaza 3', '+34 910123456', 'laterraza@email.com', 'Terraza', 'terraza_logo-2023-04-01.jpg', 4),
+  ('El Rincón', 'Asiática', 'Calle del Mar 15', '+34 910789012', 'elrincon@email.com', 'Restaurante', 'rincon_logo-2023-02-03', 3);
 
 INSERT INTO plato (nombre, precio, imagen, tipo, id_restaurante) 
 VALUES

@@ -36,7 +36,7 @@ h1 {
     color: #555;
 }
 
-form {
+.formRellenar {
     display: flex;
     flex-direction: column;
 }
@@ -135,8 +135,8 @@ a {
     }
 }
 
-/* Media query for screens smaller than 480px */
-@media (max-width: 479px) {
+/* Media query for screens smaller than 400px */
+@media (max-width: 400px) {
     input {
         height: 2em;
     }
@@ -156,7 +156,7 @@ h1 {
     padding-top: 20px;
 }
 
-form {
+.formRellenar {
     max-width: 500px;
     margin: 0 auto;
     padding: 20px;
@@ -247,8 +247,8 @@ button[type=submit]:hover {
     background-color: #45a049;
 }
 
-@media (max-width: 480px) {
-    form {
+@media (max-width: 400px) {
+    .formRellenar {
         padding: 7px;
     }
 
