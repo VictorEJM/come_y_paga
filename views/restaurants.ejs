@@ -4,17 +4,42 @@
     <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Restaurantes</title>
     <link rel="stylesheet" href="styles/style.css">
+    <script>
+      function tabFunctionResponsiveEnable() {
+        var x = document.getElementById("TopNavHome");
+        if (x.className === "topnavhome") {
+          x.className += " responsive";
+        } else {
+          x.className = "topnavhome";
+        }
+      }
+    </script>
   </head>
   <body>
     <h1>RESTAURANTES</h1>
+    <div class="topnavhome" id="TopNavHome">
+      <form method="POST" action="/logout">
+        <button type="submit">
+          <a href="#home" class="active">
+              Cerrar sesión
+            <img src="images/logout.png" alt="logout" width="20" />
+          </a>
+        </button>
+      </form>
+      <a href="#home" class="active">
+        <%= user %>
+      </a>
+      <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
+        <i class="fa fa-bars"></i>
+      </a>
+    </div>
     <div class="user-info">
       <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
-      <span>
-        <img src="images/user.png" alt="user" width="40" />
-        <%= user %>
-      </span>
+      
       <form method="POST" action="/logout">
-        <button type="submit">Cerrar sesión</button>
+        <button type="submit">
+          Cerrar sesión
+        </button>
       </form>
     </div>
     <div style="padding: 8px 16px; text-align: center;">
