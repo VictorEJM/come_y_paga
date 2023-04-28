@@ -10,6 +10,10 @@
           width: 82%;
         }
       }
+      .button_restaurant {
+        margin-bottom: 10px;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+      }
     </style>
     <script>
       function tabFunctionResponsiveEnable() {
@@ -37,20 +41,12 @@
       <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
         <i class="fa fa-bars"></i>
       </a>
-    <form method="POST" action="/logout">
-        <button type="submit">
-          <p style="text-align: center;">
-            <img src="images/logout.png" alt="logout" width="20" />
-            Cerrar sesión
-          </p>
-        </button>
-      </form>
     </div>
 
     <div class="divRestauranteButton" style="padding: 8px 16px; text-align: center; 
       display: flex; flex-direction: column; 
       justify-content: space-between; 
-      width: 80%; max-width: 400px;">
+      width: 82%; max-width: 400px;">
       <% if (restaurants.length > 0) { %>
         <% restaurants.forEach(restaurant => { %>
           <a href="/plates/<%= restaurant.id %>" class="button_restaurant"
@@ -66,7 +62,7 @@
             border-radius: 4px;
             cursor: pointer;">
             <div style="flex: 1; display: flex;">
-              <div style="width: 30%; position: relative;">
+              <div style="width: 50%; position: relative;">
                 <img src="images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%;">
               </div>
               <div style="width: 50%; display: flex; flex-direction: column; padding-left: 8px; position: relative;">
@@ -74,6 +70,7 @@
                 <div><%= restaurant.tipo_comida %></div>
                 <div><%= restaurant.direccion %></div>
                 <div><%= restaurant.telefono %></div>
+                <div><%= restaurant.email %></div>
                 <div>
                   <% for (let i = 1; i <= 5 + 1; i++) { %>
                     <% const starNum = i - 1 %>
@@ -94,6 +91,19 @@
         <br/>
       <% } %>
     </div>
-    
+    <!-- TOFIX: APARECER LA IMAGEN DE LOGOUT -->
+    <div class="button_bottom">
+      <form method="POST" action="/logout">
+        <button class="btn_button_bottom" type="submit" style="
+          display: inline-block;
+          padding: 2.35% 50%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;">
+          <img src="images/logout.png" alt="logout" width="70%" />
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
   </body>
 </html>
