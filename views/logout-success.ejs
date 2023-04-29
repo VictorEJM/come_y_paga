@@ -3,23 +3,58 @@
   <head>
     <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Logout</title>
+    <style>
+      body {
+        background-color: #f2f2f2;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        margin: 100px auto;
+        max-width: 600px;
+        padding: 50px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+      h1 {
+        color: #00cc88;
+        font-size: 36px;
+        margin-bottom: 30px;
+      }
+      p {
+        font-size: 24px;
+        margin-bottom: 30px;
+      }
+      .redirect {
+        font-size: 18px;
+        color: #666;
+      }
+      .redirect span {
+        color: #00cc8f;
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
-      <p><%= title %></p>
+    <div class="container">
+      <h1 class="title"><%= title %></h1>
+      <!-- <p><%= title %></p> -->
+      <p class="redirect">REDIRIGIENDO...</p>
+    </div>
       <!-- 
         <p class="redirect">Serás redirigido a la página de inicio de sesión en <span id="countdown">1</span> segundos.</p>
       -->
-    <script>
-      // redirect to the home page after 1 second
-      let countdown = 1;
-      setInterval(() => {
-        countdown--;
-        if (countdown <= 0) {
-          window.location.href = '/';
-        } else {
-          document.getElementById('countdown').innerText = countdown;
-        }
-      }, 1000);
-    </script>
+      <script>
+        // redirect to the home page after 1 second
+        let countdown = 1;
+        setInterval(() => {
+          countdown--;
+          if (countdown <= 0) {
+            window.location.href = '/';
+          } else {
+            document.getElementById('countdown').innerText = countdown;
+          }
+        }, 1000);
+      </script>
   </body>
 </html>

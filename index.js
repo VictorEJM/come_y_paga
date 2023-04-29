@@ -42,14 +42,14 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// la función comprueba si es númerico
+// función que comprueba si es númerico
 function isNumeric(str) {
   if (typeof str != "string") return false; // we only process strings!  
   return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
          !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
 }
 
-// Define routes
+// RUTAS
 
 // RESTAURANTES
 app.get('/restaurants', async (req, res) => {
@@ -109,12 +109,12 @@ app.post('/login', async (req, res) => {
       req.session.save(); // guardar datos de sesión del usuario
       
       // Redirigir al usuario según su tipo de usuario
-      if (rows[0].tipo_usuario === 'administrador') {
-        res.redirect('/admin');
-      } else if (rows[0].tipo_usuario === 'repartidor') {
-        res.redirect('/repartidor');
-      } else {
-        res.redirect('/restaurants');
+      switch (rows[0].tipo_usuario)
+      {
+        case 'administrador': res.redirect('/admin'); break;
+        case 'repartidor': res.redirect('/repartidor'); break;
+        case 'cliente':
+        default: res.redirect('/restaurants'); break;
       }
     }
   } catch (error) {
@@ -258,6 +258,7 @@ app.post('/register', async (req, res) => {
 // TODO: PROBAR Y HACER ALGUNOS AJUSTES, SOLO HAY TABLA DE usuario, FALTAN LAS DEMÁS
 
 app.get('/admin', async (req, res) => {
+  const connection = await pool.getConnection();
   connection.query('SELECT * FROM usuario', function(error, results, fields) {
     if (error) throw error;
     res.render('admin', { users: results });
@@ -265,14 +266,100 @@ app.get('/admin', async (req, res) => {
 });
 
 // Agregar usuario
-app.post('/admin/add', function(req, res) {
+app.post('/admin/add', async (req, res) => {
+  const connection = await pool.getConnection();
   // Obtener los datos del formulario
-  const { nombre, correo, password } = req.body;
+  const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
+  const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
+  const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
+  const username_str = nombre_usuario.toLowerCase();
+  const direccionRegex = /^\s*(?=.{5,100}$).*$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const dateObj = new Date(req.body.fecha_nacimiento);
+
+  var errPhrase = "";
+  var hasError = false;
+
+  if (nombre.trim().length < 3 || nombre.trim().length > 50) {
+    errPhrase += 'El nombre no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (apellidos.trim().length < 3 || apellidos.trim().length > 50) {
+    errPhrase += 'En los apellidos, no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!fecha_nacimiento || isNaN(dateObj.getTime())) {
+    errPhrase += 'La fecha no es válida.\n';
+    hasError = true;
+  }
+  if (!direccion || !direccion.match(direccionRegex)) {
+    errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacía.\n';
+    hasError = true;
+  }
+  if (!isNumeric(telefono.trim()) || telefono.trim().length < 9 || telefono.trim().length > 16) {
+    errPhrase += 'El teléfono tiene que ser númerico, no puede ser menor de 4, ni mayor de 16 carácteres, ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!email || !email.match(emailRegex)) {
+    errPhrase += 'El email no coincide o está vacío.\n';
+    hasError = true;
+  }
+  if (municipio.trim().length < 2 || municipio.trim().length > 50) {
+    errPhrase += 'El municipio no puede ser menor de 2 carácteres, ni mayor de 50 carácteres, ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (username_str.length < 3 || username_str.length > 50) {
+    errPhrase += 'El nombre de usuario no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (contrasena_usuario.trim().length < 4 || contrasena_usuario.trim().length > 60) {
+    errPhrase += 'La contraseña no puede ser menor de 5 carácteres, ni mayor de 60 carácteres, ni puede estar vacía.\n';
+    hasError = true;
+  }
+
+  if (hasError)
+  {
+    //document.getElementById("error").innerHTML = "";
+    res.render('admin', { error: errPhrase, 
+      nombre: nombre ?? '', 
+      apellidos: apellidos ?? '', 
+      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      municipio: municipio ?? '', 
+      nombre_usuario: nombre_usuario ?? '', 
+      contrasena_usuario: contrasena_usuario ?? ''
+    });
+    return;
+  }
+
   // Insertar los datos en la tabla de usuario
-  connection.query('INSERT INTO usuario (nombre, email, contrasena_usuario) VALUES (?, ?, ?)', [nombre, correo, password], function(error, results, fields) {
-    if (error) throw error;
-    res.redirect('/admin');
-  });
+  try {
+    if (rows.length === 0) {
+      connection.query(
+        'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password], 
+      function(error, results, fields) {
+        if (error) throw error;
+        res.redirect('/admin');
+      });
+    } else res.render('admin', { error: 'Ese usuario ya existe',
+      nombre: nombre ?? '', 
+      apellidos: apellidos ?? '', 
+      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      municipio: municipio ?? '', 
+      nombre_usuario: nombre_usuario ?? '', 
+      contrasena_usuario: contrasena_usuario ?? ''
+    });
+    connection.release();
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
 });
 
 // Editar usuario
@@ -280,7 +367,9 @@ app.post('/admin/edit', function(req, res) {
   // Obtener el ID del usuario a editar
   const id = req.body.id;
   // Obtener los datos del usuario
-  connection.query('SELECT * FROM usuario WHERE id = ?', [id], function(error, results, fields) {
+  connection.query('SELECT * FROM usuario WHERE id = ?', 
+  [id], 
+  function(error, results, fields) {
     if (error) throw error;
     res.render('edit', { user: results[0] });
   });
@@ -291,7 +380,9 @@ app.post('/admin/update', function(req, res) {
   // Obtener los datos del formulario
   const { id, nombre, correo, password } = req.body;
   // Actualizar los datos del usuario en la tabla de usuario
-  connection.query('UPDATE usuario SET nombre = ?, email = ?, contrasena_usuario = ? WHERE id = ?', [nombre, correo, password, id], function(error, results, fields) {
+  connection.query('UPDATE usuario SET nombre = ?, email = ?, contrasena_usuario = ? WHERE id = ?', 
+  [nombre, correo, password, id], 
+  function(error, results, fields) {
     if (error) throw error;
     res.redirect('/admin');
   });
