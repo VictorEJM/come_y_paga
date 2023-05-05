@@ -90,7 +90,7 @@ app.get('/login', (req, res) => {
 // LOGIN
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
+  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); // modified line
   console.log('nombre_usuario:', username, 'contrasena_usuario:', hashedPassword);
   
   try {
@@ -122,6 +122,7 @@ app.post('/login', async (req, res) => {
     res.render('error');
   }
 });
+
 
 
 // LOGOUT
@@ -161,7 +162,7 @@ app.get('/register', (req, res) => {
 app.post('/register', async (req, res) => {
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
   const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
-  const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
+  const sha256Password = crypto.createHash('sha256').update(contrasena_usuario).digest('hex');
   const username_str = nombre_usuario.toLowerCase();
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -233,7 +234,7 @@ app.post('/register', async (req, res) => {
     if (rows.length === 0) {
       await connection.execute(
       'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password]
+      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, sha256Password]
       );
     } else res.render('register', { error: 'Ese usuario ya existe',
       nombre: nombre ?? '', 
@@ -271,7 +272,7 @@ app.post('/admin/add', async (req, res) => {
   // Obtener los datos del formulario
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
   const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
-  const md5Password = crypto.createHash('md5').update(contrasena_usuario).digest('hex');
+  const sha256Password = crypto.createHash('sha256').update(contrasena_usuario).digest('hex');
   const username_str = nombre_usuario.toLowerCase();
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -339,7 +340,7 @@ app.post('/admin/add', async (req, res) => {
     if (rows.length === 0) {
       connection.query(
         'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, md5Password], 
+      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, sha256Password], 
       function(error, results, fields) {
         if (error) throw error;
         res.redirect('/admin');
