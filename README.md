@@ -6,7 +6,38 @@ Tratando de hacerlo en Flutter, NodeJS o algún framework que vaya más cómodo.
 ## Cómo instalar
 Necesitas NodeJS y seguir los siguientes comandos en la consola PowerShell:
 ```ps
-npm install express ejs sha256 sqlite3 express-session cookie-parser mysql2 prisma
+npm install express ejs sha256 sqlite3 express-session cookie-parser mysql2 prisma @prisma/client
+```
+
+### Instalación y configuración de Prisma
+Para instalar Prisma en un proyecto de Node.js usando `npm`, puede seguir estos pasos:
+
+1. Instale Prisma CLI globalmente ejecutando el siguiente comando en su terminal:
+```ps
+npm install prisma -g
+```
+2. Cree un directorio `prisma` en la raíz de su proyecto ejecutando el siguiente comando:
+```ps
+npx prisma init
+```
+Esto creará un archivo `prisma/schema.prisma`, que es donde define el esquema de su base de datos y configura su conexión a la base de datos.
+
+3. Actualice su archivo `package.json` con los siguientes scripts:
+```json
+{
+   "scripts": {
+     "prisma": "npx prisma",
+     "dev": "npm run prisma db push && node ./index.js",
+     "generate": "npm run prisma generate",
+     "studio": "npm run studio prisma"
+   }
+}
+```
+Estos scripts le permitirán ejecutar comandos de la CLI de Prisma más fácilmente, como crear tablas de bases de datos y ejecutar migraciones.
+
+4. Ejecuta el siguiente comando para generar el esquema en Prisma para así poder establecer con el ORM:
+```ps
+npx prisma generate
 ```
 
 ## Cómo ejecutar el server

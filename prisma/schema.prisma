@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:1234@localhost:3306/come_y_paga"
+  // "mysql://USER:PASSWORD@HOST:PORT/DATABASE"
+}
+
+model Usuario {
+  id                   Int      @id @default(autoincrement())
+  nombre               String   @default("Anonimo")
+  apellidos            String   @default("Anonimo")
+  fecha_nacimiento     DateTime @default("1970-01-01T00:00:00Z")
+  direccion            String   @default("desconocida")
+  telefono             String   @default("000000000")
+  email                String   @default("unknown@email.com")
+  municipio            String   @default("desconocido")
+  nombre_usuario       String   @unique @default("anon")
+  contrasena_usuario   String   @default("1234")
+  tipo_usuario         String   @default("cliente")
+
+  pedidos       Pedido[]
+  @@map(name: "Usuario")
+}
+
+model Restaurante {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @default("Anonimo")
+  tipo_comida String  @default("que_tipo_de_comida_es_esta?")
+  direccion   String  @default("desconocida")
+  telefono    String  @default("000000000")
+  email       String  @default("unknown@email.com")
+  tipologia   String  @default("desconocida")
+  logo        String
+  estrellas   Int     @default(0)
+
+  platos      Plato[]
+  pedidos     Pedido[]
+}
+
+model Plato {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @default("Anonimo")
+  precio        Float         @default(0.00)
+  imagen        String
+  tipo          TipoPlato     @default(entrante)
+  id_restaurante Int          @map("id_restaurante")
+  restaurante   Restaurante   @relation(fields: [id_restaurante], references: [id])
+}
+
+enum TipoPlato {
+  entrante
+  principal
+  postre
+  bebida
+}
+
+model Pedido {
+  id              Int           @id @default(autoincrement())
+  id_usuario      Int           @map("id_usuario")
+  id_restaurante  Int           @map("id_restaurante")
+  precio          String        @default("0.00")
+  estado          EstadoPedido  @default(incidencia)
+  platos          String
+  usuario         Usuario       @relation(fields: [id_usuario], references: [id])
+  restaurante     Restaurante   @relation(fields: [id_restaurante], references: [id])
+}
+
+enum EstadoPedido {
+  pendiente
+  en_proceso
+  entregado
+  incidencia
+}

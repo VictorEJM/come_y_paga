@@ -1,6 +1,7 @@
 {
     "private": true,
     "dependencies": {
+        "@prisma/client": "^4.13.0",
         "cookie-parser": "^1.4.6",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
@@ -11,9 +12,14 @@
         "mysql2": "^3.2.3",
         "mysql3": "^0.6.0",
         "prisma": "^4.13.0",
+        "sha256": "^0.2.0",
         "sqlite3": "^5.1.6"
     },
     "scripts": {
+        "prisma": "npx prisma",
+        "dev": "npm run prisma db push && node ./index.js",
+        "generate": "npm run prisma generate",
+        "studio": "npm run prisma studio",
         "start": "node ."
     }
 }

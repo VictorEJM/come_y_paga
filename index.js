@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
 var session = require('express-session');
+// Import the Prisma client and create an instance of the Prisma client
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 // Create an instance of the Express app
 const app = express();
 
@@ -20,15 +23,26 @@ const pool = mysql.createPool({
 
 // check the MySQL connection when the server starts
 (async () => {
-    try {
-      const connection = await pool.getConnection();
-      console.log('MySQL connected');
-      connection.release();
-    } catch (error) {
-      console.error('MySQL connection failed:', error);
-      process.exit(1);
-    }
-  })();
+  try {
+    const connection = await pool.getConnection();
+    console.log('MySQL connected');
+    connection.release();
+  } catch (e) {
+    console.error('*** ERROR: MySQL connection failed:', e);
+    process.exit(1);
+  }
+})();
+
+// check the Prisma connection to MySQL database when the server starts
+(async () => {
+  try {
+    await prisma.$connect();
+    console.log('Prisma connection to MySQL database connected');
+  } catch (e) {
+    console.error('*** ERROR: Prisma connection to MySQL database connection failed:', e);
+    process.exit(1);
+  }
+})();
 
 // Set up the middleware
 app.use(express.static('public'));
@@ -55,8 +69,8 @@ function isNumeric(str) {
 app.get('/restaurants', async (req, res) => {
   try {
     if (req.session.user != undefined || req.session.user != null) {
-      const [rows, fields] = await pool.execute('SELECT * FROM restaurante');
-      res.render('restaurants', { restaurants: rows, user: req.session.user });
+      const restaurants = await prisma.restaurante.findMany();
+      res.render('restaurants', { restaurants, user: req.session.user });
     } else res.render('error');
     console.log("req.session.user: " + req.session.user);
   } catch (error) {
@@ -69,10 +83,17 @@ app.get('/restaurants', async (req, res) => {
 app.get('/plates/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const [rows, fields] = await pool.execute('SELECT * FROM plato WHERE id_restaurante = ?', [id]);
-    const [restaurant, fields2] = await pool.execute('SELECT * FROM restaurante WHERE id = ?', [id]);
-    //console.log('restaurant: ' + restaurant[0]);
-    res.render('plates', { plates: rows, user: req.session.user, restaurant: restaurant[0] });
+    const plates = await prisma.plato.findMany({
+      where: {
+        id_restaurante: Number(id)
+      }
+    });
+    const restaurant = await prisma.restaurante.findUnique({
+      where: {
+        id: Number(id)
+      }
+    });
+    res.render('plates', { plates: plates, user: req.session.user, restaurant: restaurant });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -90,32 +111,34 @@ app.get('/login', (req, res) => {
 // LOGIN
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); // modified line
+  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
   console.log('nombre_usuario:', username, 'contrasena_usuario:', hashedPassword);
   
   try {
-    const [rows, fields] = await pool.execute(
-      'SELECT * FROM usuario WHERE nombre_usuario = ? '
-      + 'AND contrasena_usuario = ?', 
-      [username, hashedPassword]
-    );
-    if (rows.length === 0) {
+    const user = await prisma.usuario.findUnique({
+      where: {
+        nombre_usuario: username,
+        contrasena_usuario: hashedPassword,
+      },
+    });
+
+    if (!user) {
       console.log('Incorrect username or password');
       res.render('login', { error: 'El nombre de usuario o la contraseña son incorrectos' });
-    } else {
-      console.log('Successful login');
-      req.session.user = username;
-      //req.session.admin = true;
-      req.session.save(); // guardar datos de sesión del usuario
-      
-      // Redirigir al usuario según su tipo de usuario
-      switch (rows[0].tipo_usuario)
-      {
-        case 'administrador': res.redirect('/admin'); break;
-        case 'repartidor': res.redirect('/repartidor'); break;
-        case 'cliente':
-        default: res.redirect('/restaurants'); break;
-      }
+      return;
+    }
+    
+    console.log('Successful login');
+    req.session.user = username;
+    req.session.save();
+
+    // Redirigir al usuario según su tipo de usuario
+    switch (user.tipo_usuario)
+    {
+      case 'administrador': res.redirect('/admin'); break;
+      case 'repartidor': res.redirect('/repartidor'); break;
+      case 'cliente':
+      default: res.redirect('/restaurants'); break;
     }
   } catch (error) {
     console.error('LOGIN ERROR: ', error);
@@ -224,53 +247,64 @@ app.post('/register', async (req, res) => {
     });
     return;
   }
-
-  try {
-    const connection = await pool.getConnection();
-    const [rows, fields] = await pool.execute(
-      'SELECT * FROM usuario WHERE nombre_usuario = ?', 
-      [nombre_usuario]
-    );
-    if (rows.length === 0) {
-      await connection.execute(
-      'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, sha256Password]
-      );
-    } else res.render('register', { error: 'Ese usuario ya existe',
-      nombre: nombre ?? '', 
-      apellidos: apellidos ?? '', 
-      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
-      direccion: direccion ?? '', 
-      telefono: telefono ?? '', 
-      email: email ?? '', 
-      municipio: municipio ?? '', 
-      nombre_usuario: nombre_usuario ?? '', 
-      contrasena_usuario: contrasena_usuario ?? ''
-    });
-    connection.release();
-    res.render('register-success', { title: 'Has sido registrado' });
-  } catch (error) {
-    console.log(error);
-    res.render('register-error', { title: 'Error al registrar el usuario' });
-  }
-});
+    try {
+      // check if user already exists
+      const existingUser = await prisma.usuario.findUnique({ where: { nombre_usuario } });
+      if (existingUser) {
+        res.render('register', { error: 'Ese usuario ya existe',
+          nombre: nombre ?? '', 
+          apellidos: apellidos ?? '', 
+          fecha_nacimiento: req.body.fecha_nacimiento ?? '',
+          direccion: direccion ?? '', 
+          telefono: telefono ?? '', 
+          email: email ?? '', 
+          municipio: municipio ?? '', 
+          nombre_usuario: nombre_usuario ?? '', 
+          contrasena_usuario: contrasena_usuario ?? ''
+        });
+        return;
+      }
+  
+      // create new user
+      const newUser = await prisma.usuario.create({
+        data: {
+          nombre: nombre,
+          apellidos: apellidos,
+          fecha_nacimiento: new Date(fecha_nacimiento),
+          direccion: direccion,
+          telefono: telefono,
+          email: email,
+          municipio: municipio,
+          nombre_usuario: nombre_usuario,
+          contrasena_usuario: sha256Password,
+        },
+      });
+  
+      res.render('register-success', { title: 'Has sido registrado' });
+    } catch (error) {
+      console.log(error);
+      res.render('register-error', { title: 'Error al registrar el usuario' });
+    }
+  });
 
 // ADMINISTRACIÓN
 // TODO: PROBAR Y HACER ALGUNOS AJUSTES, SOLO HAY TABLA DE usuario, FALTAN LAS DEMÁS
 
 app.get('/admin', async (req, res) => {
-  const connection = await pool.getConnection();
-  connection.query('SELECT * FROM usuario', function(error, results, fields) {
-    if (error) throw error;
-    res.render('admin', { users: results });
-  });
+  try {
+    const users = await prisma.usuario.findMany();
+    res.render('admin', { users });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
 });
 
 // Agregar usuario
 app.post('/admin/add', async (req, res) => {
   const connection = await pool.getConnection();
   // Obtener los datos del formulario
-  const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
+  const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario, tipo_usuario } = req.body;
   const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
   const sha256Password = crypto.createHash('sha256').update(contrasena_usuario).digest('hex');
   const username_str = nombre_usuario.toLowerCase();
@@ -317,6 +351,10 @@ app.post('/admin/add', async (req, res) => {
     errPhrase += 'La contraseña no puede ser menor de 5 carácteres, ni mayor de 60 carácteres, ni puede estar vacía.\n';
     hasError = true;
   }
+  if (tipo_usuario.length < 3) {
+    errPhrase += 'No ha seleccionado ninguno de los 3 tipos de usuario: cliente, administrador, repartidor.\n';
+    hasError = true;
+  }
 
   if (hasError)
   {
@@ -330,33 +368,47 @@ app.post('/admin/add', async (req, res) => {
       email: email ?? '', 
       municipio: municipio ?? '', 
       nombre_usuario: nombre_usuario ?? '', 
-      contrasena_usuario: contrasena_usuario ?? ''
+      contrasena_usuario: contrasena_usuario ?? '',
+      tipo_usuario: tipo_usuario ?? 'cliente',
     });
     return;
   }
 
   // Insertar los datos en la tabla de usuario
   try {
-    if (rows.length === 0) {
-      connection.query(
-        'INSERT INTO usuario (nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, apellidos, fecha_nacimiento, direccion, telefono, email, municipio, nombre_usuario, sha256Password], 
-      function(error, results, fields) {
-        if (error) throw error;
-        res.redirect('/admin');
+    // check if user already exists
+    const existingUser = await prisma.usuario.findUnique({ where: { nombre_usuario } });
+    if (existingUser) {
+      res.render('admin', { error: 'Ese usuario ya existe',
+        nombre: nombre ?? '', 
+        apellidos: apellidos ?? '', 
+        fecha_nacimiento: req.body.fecha_nacimiento ?? '',
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        email: email ?? '', 
+        municipio: municipio ?? '', 
+        nombre_usuario: nombre_usuario ?? '', 
+        contrasena_usuario: contrasena_usuario ?? '',
+        tipo_usuario: tipo_usuario ?? 'cliente',
       });
-    } else res.render('admin', { error: 'Ese usuario ya existe',
-      nombre: nombre ?? '', 
-      apellidos: apellidos ?? '', 
-      fecha_nacimiento: req.body.fecha_nacimiento ?? '',
-      direccion: direccion ?? '', 
-      telefono: telefono ?? '', 
-      email: email ?? '', 
-      municipio: municipio ?? '', 
-      nombre_usuario: nombre_usuario ?? '', 
-      contrasena_usuario: contrasena_usuario ?? ''
+      return;
+    }
+
+    // create new user
+    const newUser = await prisma.usuario.create({
+      data: {
+        nombre: nombre,
+        apellidos: apellidos,
+        fecha_nacimiento: new Date(fecha_nacimiento),
+        direccion: direccion,
+        telefono: telefono,
+        email: email,
+        municipio: municipio,
+        nombre_usuario: nombre_usuario,
+        contrasena_usuario: sha256Password,
+        tipo_usuario: tipo_usuario,
+      },
     });
-    connection.release();
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -364,25 +416,45 @@ app.post('/admin/add', async (req, res) => {
 });
 
 // Editar usuario
-app.post('/admin/edit', function(req, res) {
+app.post('/admin/edit', async function(req, res) {
   // Obtener el ID del usuario a editar
   const id = req.body.id;
-  // Obtener los datos del usuario
-  connection.query('SELECT * FROM usuario WHERE id = ?', 
-  [id], 
-  function(error, results, fields) {
-    if (error) throw error;
-    res.render('edit', { user: results[0] });
-  });
+  try {
+    // Obtener los datos del usuario con el ID especificado
+    const user = await prisma.usuario.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.render('edit', { user });
+  } catch (error) {
+    console.error('EDIT USER ERROR: ', error);
+    res.render('error');
+  }
 });
 
 // Actualizar usuario
-app.post('/admin/update', function(req, res) {
+app.post('/admin/update', async function(req, res) {
   // Obtener los datos del formulario
-  const { id, nombre, correo, password } = req.body;
+  const { id, nombre, apellidos, fecha_nacimiento, direccion,
+    telefono, email, municipio, 
+    nombre_usuario, contrasena_usuario } = req.body;
+
   // Actualizar los datos del usuario en la tabla de usuario
-  connection.query('UPDATE usuario SET nombre = ?, email = ?, contrasena_usuario = ? WHERE id = ?', 
-  [nombre, correo, password, id], 
+  const updatedUser = await prisma.usuario.update({
+    where: { id: id ?? '' },
+    data: {
+      nombre: nombre ?? '', 
+      apellidos: apellidos ?? '', 
+      fecha_nacimiento: fecha_nacimiento ?? '', 
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      municipio: municipio ?? '', 
+      nombre_usuario: nombre_usuario ?? '', 
+      contrasena_usuario: contrasena_usuario ?? '', 
+    },
+  }, 
   function(error, results, fields) {
     if (error) throw error;
     res.redirect('/admin');
@@ -390,14 +462,23 @@ app.post('/admin/update', function(req, res) {
 });
 
 // Eliminar usuario
-app.post('/admin/delete', function(req, res) {
+app.post('/admin/delete', async function(req, res) {
   // Obtener el ID del usuario a eliminar
   const id = req.body.id;
-  // Eliminar el usuario de la tabla de usuario
-  connection.query('DELETE FROM usuario WHERE id = ?', [id], function(error, results, fields) {
-    if (error) throw error;
+
+  try {
+    // Eliminar el usuario de la tabla de usuario
+    await prisma.usuario.delete({
+      where: {
+        id: Number(id)
+      }
+    });
+
     res.redirect('/admin');
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el usuario');
+  }
 });
 
 // Start the server
