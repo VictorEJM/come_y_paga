@@ -9,6 +9,17 @@
 	<h1>Panel de administración</h1>
 	
 	<script>
+		function mostrarDetalles(id, direccion, telefono, email, municipio) {
+			var divDetalles = document.getElementById(`user-details-${id}`);
+			divDetalles.style.display = 
+			 (divDetalles.style.display === "none")
+				? "block"
+				: divDetalles.style.display = "none";
+			divDetalles.innerHTML = "<p>Dirección: " + direccion + "</p>" +
+									"<p>Teléfono: " + telefono + "</p>" +
+									"<p>Email: " + email + "</p>" +
+									"<p>Municipio: " + municipio + "</p>";
+		}
 		function mostrarFormularioUsuarios() {
 			window.open("", "myWindow", "width=300,height=300");
 			document.getElementById("formulario-add").style.display = "block";
@@ -45,14 +56,8 @@
 			<tr>
 				<th>id</th>
 				<th>nombre</th>
-				<th>fecha_nacimiento</th>
-				<th>direccion</th>
-				<th>telefono</th>
-				<th>email</th>
-				<th>municipio</th>
+				<th>apellidos</th>
 				<th>nombre_usuario</th>
-				<th>contrasena_usuario</th>
-				<th>tipo_usuario</th>
 				<th>Acciones</th>
 			</tr>
 		</thead>
@@ -61,15 +66,19 @@
 				<tr>
 					<td><%= user.id %></td>
 					<td><%= user.nombre %></td>
-					<td><%= user.fecha_nacimiento %></td>
-					<td><%= user.direccion %></td>
-					<td><%= user.telefono %></td>
-					<td><%= user.email %></td>
-					<td><%= user.municipio %></td>
+					<td><%= user.apellidos %></td>
 					<td><%= user.nombre_usuario %></td>
-					<td><%= user.contrasena_usuario %></td>
-					<td><%= user.tipo_usuario %></td>
+					<!--
+						<td><%= user.fecha_nacimiento %></td>
+						<td><%= user.direccion %></td>
+						<td><%= user.telefono %></td>
+						<td><%= user.email %></td>
+						<td><%= user.contrasena_usuario %></td>
+						<td><%= user.tipo_usuario %></td>
+						<td><%= user.municipio %></td>
+					-->
 					<td>
+						<button onclick="mostrarDetalles('<%= user.id %>', '<%= user.direccion %>', '<%= user.telefono %>', '<%= user.email %>', '<%= user.municipio %>')">Mostrar detalles</button>
 						<!-- Botones de acción -->
 						<form method="POST" action="/admin/edit">
 							<input type="hidden" name="id" value="<%= user.id %>">
@@ -77,10 +86,17 @@
 						</form>
 						<form method="POST" action="/admin/delete">
 							<input type="hidden" name="id" value="<%= user.id %>">
-							<button type="submit">Eliminar</button>
+							<button type="submit" style="background-color:#ff0000;">Eliminar</button>
 						</form>
 					</td>
 				</tr>
+				<div id="user-details-<%= user.id %>"
+					style="display: none;
+					padding: 10px;
+					margin: 10px;
+					background-color: #ff9e4e;
+					border: 1px solid #ff5f15;">
+				</div>
 			<% }); %>
 		</tbody>
 	</table>

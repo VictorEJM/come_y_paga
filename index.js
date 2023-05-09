@@ -58,9 +58,10 @@ app.use(session({
 
 // función que comprueba si es númerico
 function isNumeric(str) {
+  // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this) 
+  // and ensure strings of whitespace fail
   if (typeof str != "string") return false; // we only process strings!  
-  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-         !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+  return !isNaN(str) && !isNaN(parseFloat(str)); 
 }
 
 // RUTAS
@@ -117,12 +118,19 @@ app.post('/login', async (req, res) => {
   try {
     const user = await prisma.usuario.findUnique({
       where: {
-        nombre_usuario: username,
-        contrasena_usuario: hashedPassword,
-      },
+        nombre_usuario: username
+      }
     });
 
     if (!user) {
+      console.log('Incorrect username or password');
+      res.render('login', { error: 'El nombre de usuario o la contraseña son incorrectos' });
+      return;
+    }
+    
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    
+    if (user.contrasena_usuario !== hashedPassword) {
       console.log('Incorrect username or password');
       res.render('login', { error: 'El nombre de usuario o la contraseña son incorrectos' });
       return;
@@ -133,8 +141,7 @@ app.post('/login', async (req, res) => {
     req.session.save();
 
     // Redirigir al usuario según su tipo de usuario
-    switch (user.tipo_usuario)
-    {
+    switch (user.tipo_usuario) {
       case 'administrador': res.redirect('/admin'); break;
       case 'repartidor': res.redirect('/repartidor'); break;
       case 'cliente':
