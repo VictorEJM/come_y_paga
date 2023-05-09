@@ -138,6 +138,14 @@ a {
     }
 }
 
+table tr:nth-child(even) {
+    background-color: #7ed0ff;
+}
+
+table tr:nth-child(odd) {
+    background-color: #b6d8ff;
+}
+
 /* Media query for screens smaller than 400px */
 @media (max-width: 400px) {
     input {
