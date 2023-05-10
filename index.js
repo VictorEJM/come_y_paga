@@ -64,8 +64,24 @@ function isNumeric(str) {
   return !isNaN(str) && !isNaN(parseFloat(str)); 
 }
 
-// RUTAS
 
+
+
+/*******************------******************/
+/*******************************************/
+/****************** RUTAS ******************/
+/*******************************************/
+/*******************------******************/
+// PRINCIPAL
+app.get('/', (req, res) => {
+  res.render('login', { error: null });
+});
+
+
+
+/*********************************/
+/*********** RESTAURANTES ********/
+/*********************************/
 // RESTAURANTES
 app.get('/restaurants', async (req, res) => {
   try {
@@ -80,6 +96,11 @@ app.get('/restaurants', async (req, res) => {
   }
 });
 
+
+
+/*******************************/
+/************ PLATOS ***********/
+/*******************************/
 // PLATOS DE UN RESTAURANTE
 app.get('/plates/:id', async (req, res) => {
   const { id } = req.params;
@@ -101,15 +122,16 @@ app.get('/plates/:id', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.render('login', { error: null });
-});
 
+
+/*******************************/
+/************ LOGIN ************/
+/************ LOGOUT ***********/
+/*******************************/
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-// LOGIN
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
@@ -153,8 +175,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
-
 // LOGOUT
 app.post('/logout', (req, res) => {
   if (req.session) {
@@ -174,6 +194,11 @@ app.post('/logout', (req, res) => {
   console.log('Logout finished!');
 });
 
+
+
+/**********************************/
+/************ REGISTRAR ***********/
+/**********************************/
 app.get('/register', (req, res) => {
   res.render('register', { error: '',
     nombre: '', 
@@ -188,7 +213,6 @@ app.get('/register', (req, res) => {
   });
 });
 
-// REGISTRAR
 app.post('/register', async (req, res) => {
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario } = req.body;
   const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
@@ -254,47 +278,168 @@ app.post('/register', async (req, res) => {
     });
     return;
   }
-    try {
-      // check if user already exists
-      const existingUser = await prisma.usuario.findUnique({ where: { nombre_usuario } });
-      if (existingUser) {
-        res.render('register', { error: 'Ese usuario ya existe',
-          nombre: nombre ?? '', 
-          apellidos: apellidos ?? '', 
-          fecha_nacimiento: req.body.fecha_nacimiento ?? '',
-          direccion: direccion ?? '', 
-          telefono: telefono ?? '', 
-          email: email ?? '', 
-          municipio: municipio ?? '', 
-          nombre_usuario: nombre_usuario ?? '', 
-          contrasena_usuario: contrasena_usuario ?? ''
-        });
-        return;
-      }
-  
-      // create new user
-      const newUser = await prisma.usuario.create({
-        data: {
-          nombre: nombre,
-          apellidos: apellidos,
-          fecha_nacimiento: new Date(fecha_nacimiento),
-          direccion: direccion,
-          telefono: telefono,
-          email: email,
-          municipio: municipio,
-          nombre_usuario: nombre_usuario,
-          contrasena_usuario: sha256Password,
-        },
+
+  try {
+    // check if user already exists
+    const existingUser = await prisma.usuario.findUnique({ where: { nombre_usuario } });
+    if (existingUser) {
+      res.render('register', { error: 'Ese usuario ya existe',
+        nombre: nombre ?? '', 
+        apellidos: apellidos ?? '', 
+        fecha_nacimiento: req.body.fecha_nacimiento ?? '',
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        email: email ?? '', 
+        municipio: municipio ?? '', 
+        nombre_usuario: nombre_usuario ?? '', 
+        contrasena_usuario: contrasena_usuario ?? ''
       });
-  
-      res.render('register-success', { title: 'Has sido registrado' });
-    } catch (error) {
-      console.log(error);
-      res.render('register-error', { title: 'Error al registrar el usuario' });
+      return;
     }
+
+    // create new user
+    const newUser = await prisma.usuario.create({
+      data: {
+        nombre: nombre,
+        apellidos: apellidos,
+        fecha_nacimiento: new Date(fecha_nacimiento),
+        direccion: direccion,
+        telefono: telefono,
+        email: email,
+        municipio: municipio,
+        nombre_usuario: nombre_usuario,
+        contrasena_usuario: sha256Password,
+      },
+    });
+
+    res.render('register-success', { title: 'Has sido registrado' });
+  } catch (error) {
+    console.log(error);
+    res.render('register-error', { title: 'Error al registrar el usuario' });
+  }
+});
+
+
+
+
+
+// TODO: HACER QUE SEA REDIRIGIDO POR PARTE DE UN PLATO Y SE PROCESE
+// LA COMPRA CON LA DIRECCIÓN Y DATOS A PROCESAR, PONER DIRECCIÓN POR DEFECTO
+// DEL USUARIO, DESPUÉS DE PROCESAR EL REPARTIDOR OBTENDRÁ EL PEDIDO DE 
+// TAL USUARIO CON TALES DATOS
+
+
+/************************************/
+/************** PEDIDOS *************/
+/************************************/
+// PEDIDOS
+app.post('/purchase/:id', async (req, res) => {
+  const plateId = parseInt(req.params.id);
+  const deliveryAddress = req.body.deliveryAddress;
+  const newAddress = req.body.newAddress;
+
+  // Validate the form data
+  if (!deliveryAddress && !newAddress) {
+    res.status(400).send('Please select or enter a delivery address.');
+    return;
+  }
+
+  // Save the purchase details to the database
+  const newOrder = await prisma.pedidos.create({
+    data: {
+      plate: {
+        connect: {
+          id: plateId,
+        },
+      },
+      delivery_address: deliveryAddress || newAddress,
+    },
   });
 
-// ADMINISTRACIÓN
+  // Redirect to the confirmation page
+  res.redirect(`/confirmation/${plateId}`);
+});
+
+// CONFIRMACIÓN DE TAL PLATO
+app.get('/confirmation/:id', async (req, res) => {
+  const plateId = parseInt(req.params.id);
+
+  // Get the details of the selected plate from the database
+  const plate = await prisma.plate.findUnique({
+    where: {
+      id: plateId,
+    },
+  });
+
+  // Calculate the total price including IVA
+  const price = plate.price;
+  const iva = 0.21;
+  const totalPrice = price * (1 + iva);
+
+  // Render the confirmation page with the plate data and total price
+  res.render('confirmation', { plate, totalPrice });
+});
+
+// Manejador para mostrar la lista de pedidos
+app.get('/pedidos', async (req, res) => {
+  try {
+    // Obtiene la lista de pedidos de la base de datos
+    const pedidos = await prisma.pedido.findMany({
+      include: {
+        usuario: true,
+        restaurante: true
+      }
+    });
+    
+    // Renderiza la plantilla HTML y pasa los datos de los pedidos como contexto
+    res.render('pedidos', { pedidos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener la lista de pedidos');
+  }
+});
+
+
+
+/**************************************/
+/************* REPARTIDOR *************/
+/**************************************/
+app.get('/repartidor', async (req, res) => {
+  const pedidos = await prisma.pedido.findMany({
+    include: {
+      usuario: true,
+      restaurante: true,
+    },
+    orderBy: { id: 'desc' },
+  });
+  res.render('repartidor', { pedidos });
+});
+
+// Manejador para actualizar el estado de un pedido
+app.post('/repartidor/:id/estado', async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+  
+  try {
+    // Actualiza el estado del pedido en la base de datos
+    const pedido = await prisma.pedido.update({
+      where: { id: parseInt(id) },
+      data: { estado }
+    });
+    
+    // Redirige a la página de la lista de pedidos
+    // res.redirect('/pedidos');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al actualizar el estado del pedido');
+  }
+});
+
+
+
+/*************************************/
+/********** ADMINISTRACIÓN ***********/
+/*************************************/
 // TODO: PROBAR Y HACER ALGUNOS AJUSTES, SOLO HAY TABLA DE usuario, FALTAN LAS DEMÁS
 
 app.get('/admin', async (req, res) => {
@@ -423,7 +568,7 @@ app.post('/admin/add', async (req, res) => {
 });
 
 // Editar usuario
-app.post('/admin/edit', async function(req, res) {
+app.post('/admin/edit-user', async function(req, res) {
   // Obtener el ID del usuario a editar
   const id = req.body.id;
   try {
@@ -484,7 +629,8 @@ app.post('/admin/delete', async function(req, res) {
     res.redirect('/admin');
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error al eliminar el usuario');
+    // TODO: MOSTRAR ERROR
+    //res.status(500).send('Error al eliminar el usuario');
   }
 });
 

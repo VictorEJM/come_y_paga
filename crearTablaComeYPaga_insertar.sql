@@ -42,9 +42,11 @@ CREATE TABLE IF NOT EXISTS pedido (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_usuario INT UNSIGNED NOT NULL,
   id_restaurante INT UNSIGNED NOT NULL,
+  direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
+  telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
   precio VARCHAR(10) NOT NULL DEFAULT 0.00,
   estado ENUM('pendiente', 'en proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
-  platos TEXT NOT NULL,
+  plato TEXT NOT NULL,
   FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (id_restaurante) REFERENCES restaurante(id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -68,9 +70,9 @@ VALUES
   ('Ensalada César', 12.50, 'ensalada_cesar-2023-04-01', 'entrante', 1), 
   ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03', 'principal', 2);
 
-INSERT INTO pedido (id_usuario, id_restaurante, precio, estado, platos)
+INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, plato)
 VALUES
-  (1, 1, 12.76, 'pendiente', 'Arroz a la Cubana');
+  (1, 1, 'C/Administración 777', '111111111', 12.76, 'pendiente', 'Arroz a la Cubana');
 
 -- PRUEBA CON EL DELETE ON CASCADE
 -- DELETE FROM restaurante WHERE id = 1;

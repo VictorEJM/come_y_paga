@@ -64,9 +64,11 @@ model Pedido {
   id              Int           @id @default(autoincrement())
   id_usuario      Int           @map("id_usuario")
   id_restaurante  Int           @map("id_restaurante")
+  direccion       String        @default("desconocida")
+  telefono        String        @default("000000000")
   precio          String        @default("0.00")
   estado          EstadoPedido  @default(incidencia)
-  platos          String
+  plato           String
   usuario         Usuario       @relation(fields: [id_usuario], references: [id])
   restaurante     Restaurante   @relation(fields: [id_restaurante], references: [id])
 }
