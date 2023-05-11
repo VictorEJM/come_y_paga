@@ -3,10 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles/style.css">
+    <script>
+      function tabFunctionResponsiveEnable() {
+        var x = document.getElementById("TopNavHome");
+        if (x.className === "topnavhome") {
+          x.className += " responsive";
+        } else {
+          x.className = "topnavhome";
+        }
+      }
+    </script>
     <title>Pedidos</title>
   </head>
   <body>
     <h1>Lista de pedidos</h1>
+
+    <div class="topnavhome" id="TopNavHome">
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      
+      <a class="active">
+        <img src="images/user.png" alt="user" width="15" />
+      </a>
+      <a class="active">
+        <%= usuario %>
+      </a>
+      <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
+        <i class="fa fa-bars"></i>
+      </a>
+      
+      <form method="POST" action="/logout">
+        <button class="btn_button_bottom" type="submit" style="
+          display: inline-block;
+          padding: 2.35%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;">
+          <img src="images/logout.png" alt="logout" width="10%" />
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -26,10 +64,10 @@
             <td><%= pedido.precio %></td>
             <td>
               <form method="POST" action="/repartidor/<%= pedido.id %>/estado">
-                <button type="submit" name="estado" value="pendiente"<% if (pedido.estado === 'pendiente') { %> style="background-color: yellow;" <% } %>>Pendiente</button>
-                <button type="submit" name="estado" value="en_proceso"<% if (pedido.estado === 'en_proceso') { %> style="background-color: yellow;" <% } %>>En proceso</button>
-                <button type="submit" name="estado" value="entregado"<% if (pedido.estado === 'entregado') { %> style="background-color: yellow;" <% } %>>Entregado</button>
-                <button type="submit" name="estado" value="incidencia"<% if (pedido.estado === 'incidencia') { %> style="background-color: yellow;" <% } %>>Incidencia</button>
+                <button type="submit" name="estado" value="pendiente"<% if (pedido.estado === 'pendiente') { %> style="background-color: #c75000;" <% } %>>Pendiente</button>
+                <button type="submit" name="estado" value="en_proceso"<% if (pedido.estado === 'en_proceso') { %> style="background-color: #c75000;" <% } %>>En proceso</button>
+                <button type="submit" name="estado" value="entregado"<% if (pedido.estado === 'entregado') { %> style="background-color: #c75000;" <% } %>>Entregado</button>
+                <button type="submit" name="estado" value="incidencia"<% if (pedido.estado === 'incidencia') { %> style="background-color: #c75000;" <% } %>>Incidencia</button>
               </form>
             </td>
           </tr>

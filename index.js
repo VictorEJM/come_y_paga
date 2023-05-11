@@ -321,6 +321,8 @@ app.post('/register', async (req, res) => {
 
 
 
+// Hide scrollbars but keep functionality:
+// https://www.w3schools.com/howto/howto_css_hide_scrollbars.asp
 
 
 // TODO: HACER QUE SEA REDIRIGIDO POR PARTE DE UN PLATO Y SE PROCESE
@@ -412,7 +414,7 @@ app.get('/repartidor', async (req, res) => {
     },
     orderBy: { id: 'desc' },
   });
-  res.render('repartidor', { pedidos });
+  res.render('repartidor', { usuario: req.session.user, pedidos });
 });
 
 // Manejador para actualizar el estado de un pedido
