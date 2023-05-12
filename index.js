@@ -422,6 +422,9 @@ app.post('/repartidor/:id/estado', async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
   
+  console.log("id : " + id);
+  console.log("estado : " + estado);
+  
   try {
     // Actualiza el estado del pedido en la base de datos
     const pedido = await prisma.pedido.update({
@@ -429,8 +432,9 @@ app.post('/repartidor/:id/estado', async (req, res) => {
       data: { estado }
     });
     
-    // Redirige a la página de la lista de pedidos
-    // res.redirect('/pedidos');
+    // Redirige a la página de nuevo
+    // res.redirect('/repartidor');
+    res.render('repartidor', { usuario: req.session.user, pedidos, estado });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al actualizar el estado del pedido');
