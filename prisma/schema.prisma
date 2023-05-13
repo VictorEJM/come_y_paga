@@ -69,6 +69,7 @@ model Pedido {
   precio          String        @default("0.00")
   estado          EstadoPedido  @default(incidencia)
   plato           String
+  nombre_repartidor  String     @default("NADIE")
   usuario         Usuario       @relation(fields: [id_usuario], references: [id])
   restaurante     Restaurante   @relation(fields: [id_restaurante], references: [id])
 }

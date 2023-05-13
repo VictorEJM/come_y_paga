@@ -52,16 +52,19 @@
           <th>Restaurante</th>
           <th>Pedido</th>
           <th>Precio</th>
+          <th>Repartidor</th>
           <th>Estado</th>
         </tr>
       </thead>
       <tbody>
-        <% for (const pedido of pedidos) { %>
+        <% if (pedidos.length > 0) { %>
+          <% pedidos.forEach(pedido => { %>
           <tr>
             <td><%= pedido.usuario.nombre %></td>
             <td><%= pedido.restaurante.nombre %></td>
             <td><%= pedido.plato %></td>
             <td><%= pedido.precio %></td>
+            <td><%= pedido.nombre_repartidor %></td>
             <td>
               <form method="POST" action="/repartidor/<%= pedido.id %>/estado">
                 <button type="submit" name="estado" value="pendiente"<% if (pedido.estado === 'pendiente') { %> style="background-color: #c75000;" <% } %>>Pendiente</button>
@@ -71,6 +74,10 @@
               </form>
             </td>
           </tr>
+          <% }); %>
+        <% } else { %>
+          <p>No hay ningún pedido.</p>
+          <br/>
         <% } %>
       </tbody>
     </table>

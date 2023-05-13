@@ -407,14 +407,17 @@ app.get('/pedidos', async (req, res) => {
 /************* REPARTIDOR *************/
 /**************************************/
 app.get('/repartidor', async (req, res) => {
-  const pedidos = await prisma.pedido.findMany({
-    include: {
-      usuario: true,
-      restaurante: true,
-    },
-    orderBy: { id: 'desc' },
-  });
-  res.render('repartidor', { usuario: req.session.user, pedidos });
+  try {
+    const usuarioId = req.session.user.id;
+    const pedidos = await prisma.pedido.findMany({
+      include: { usuario: true, restaurante: true },
+      orderBy: { id: 'desc' }
+    });
+    res.render('repartidor', { usuario: req.session.user, pedidos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener la lista de pedidos');
+  }
 });
 
 // Manejador para actualizar el estado de un pedido
@@ -427,14 +430,17 @@ app.post('/repartidor/:id/estado', async (req, res) => {
   
   try {
     // Actualiza el estado del pedido en la base de datos
-    const pedido = await prisma.pedido.update({
+    const pedidos = await prisma.pedido.update({
       where: { id: parseInt(id) },
-      data: { estado }
+      data: { 
+        estado: estado, 
+        nombre_repartidor: req.session.user 
+      }
     });
     
     // Redirige a la página de nuevo
-    // res.redirect('/repartidor');
-    res.render('repartidor', { usuario: req.session.user, pedidos, estado });
+    res.redirect('/repartidor');
+    // res.render('repartidor', { usuario: req.session.user, pedidos, estado });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al actualizar el estado del pedido');
