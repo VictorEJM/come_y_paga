@@ -457,7 +457,7 @@ app.post('/repartidor/:id/estado', async (req, res) => {
 app.get('/admin', async (req, res) => {
   try {
     const users = await prisma.usuario.findMany();
-    res.render('admin', { users });
+    res.render('admin', { error: '', users });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -590,7 +590,7 @@ app.post('/admin/edit-user', async function(req, res) {
         id: Number(id),
       },
     });
-    res.render('edit', { user });
+    res.render('edit-user', { user });
   } catch (error) {
     console.error('EDIT USER ERROR: ', error);
     res.render('error');
@@ -641,8 +641,7 @@ app.post('/admin/delete', async function(req, res) {
     res.redirect('/admin');
   } catch (error) {
     console.error(error);
-    // TODO: MOSTRAR ERROR
-    //res.status(500).send('Error al eliminar el usuario');
+    res.status(500).send('Error al eliminar el usuario');
   }
 });
 

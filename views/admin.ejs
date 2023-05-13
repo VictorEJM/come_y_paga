@@ -32,35 +32,31 @@
 		// MOSTRAR TABLAS
 		function mostrarTablaUsuarios() {
 			document.getElementById("usuarios-tabla").style.display = "block";
-				document.getElementById("restaurantes-tabla").style.display = 
-				document.getElementById("platos-tabla").style.display = 
-				document.getElementById("pedidos-tabla").style.display = 
-				"none";
+				document.getElementById("restaurantes-tabla").style.display = "none";
+				document.getElementById("platos-tabla").style.display = "none";
+				document.getElementById("pedidos-tabla").style.display = "none";
 		}
 		function mostrarTablaRestaurantes() {
 			document.getElementById("restaurantes-tabla").style.display = "block";
-				document.getElementById("usuarios-tabla").style.display = 
-				document.getElementById("platos-tabla").style.display = 
-				document.getElementById("pedidos-tabla").style.display = 
-				"none";
+				document.getElementById("usuarios-tabla").style.display = "none";
+				document.getElementById("platos-tabla").style.display = "none";
+				document.getElementById("pedidos-tabla").style.display = "none";
 		}
 		function mostrarTablaPlatos() {
 			document.getElementById("platos-tabla").style.display = "block";
-				document.getElementById("usuarios-tabla").style.display = 
-				document.getElementById("restaurantes-tabla").style.display = 
-				document.getElementById("pedidos-tabla").style.display = 
-				"none";
+				document.getElementById("usuarios-tabla").style.display = "none";
+				document.getElementById("restaurantes-tabla").style.display = "none";
+				document.getElementById("pedidos-tabla").style.display = "none";
 		}
 		function mostrarTablaPedidos() {
 			document.getElementById("pedidos-tabla").style.display = "block";
-				document.getElementById("usuarios-tabla").style.display = 
-				document.getElementById("restaurantes-tabla").style.display = 
-				document.getElementById("platos-tabla").style.display = 
-				"none";
+				document.getElementById("usuarios-tabla").style.display = "none";
+				document.getElementById("restaurantes-tabla").style.display = "none";
+				document.getElementById("platos-tabla").style.display = "none";
 		}
 
 		function mostrarUsuarioDetalles(id, nombre, apellidos, direccion, telefono, municipio) {
-			var divDetalles = document.getElementById(`user-details-${id}`);
+			var divDetalles = document.getElementById("user-details-" + id);
 			divDetalles.style.display = 
 			 (divDetalles.style.display === "none")
 				? "block"
@@ -109,7 +105,7 @@
 		</div>
 
 		<!-- ERROR -->
-		<h2 style="color: #ff0000;"><%= error %=></h2>
+		<h2 style="color: #ff0000;"><%= error %></h2>
 	
 	
 	<!-- Tabla de usuarios -->
@@ -170,8 +166,10 @@
 						-->
 						<td>
 							<button onclick="mostrarUsuarioDetalles('<%= user.id %>', 
-								'<%= user.nombre %>', '<%= user.apellidos %>', 
-								'<%= user.direccion %>', '<%= user.telefono %>', 
+								'<%= user.nombre %>', 
+								'<%= user.apellidos %>', 
+								'<%= user.direccion %>', 
+								'<%= user.telefono %>', 
 								'<%= user.municipio %>')"
 								style="background-color:#ff000000;">
 								<img src="images/admin/consult.png" alt="consultarDetalles" style="width: 50px;" />
