@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>Pedidos</title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <style>
+      
+      th {
+        background-color: rgb(245, 253, 129);
+      }
+      tr:nth-child(even) {
+        background-color: #48bcff;
+      }
+      tr:nth-child(odd) {
+        background-color: #b6d8ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PEDIDOS</h1>
+
+    <div class="topnavhome" id="TopNavHome">
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      
+      <a class="active">
+        <img src="../images/user.png" alt="user" width="15" />
+        <%= user %>
+      </a>
+      <a class="active" style="background-color:#098023;" href="../restaurants">
+        <img src="../images/restaurant.png" alt="restaurant" width="15" />
+         Restaurantes
+      </a>
+      <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
+        <i class="fa fa-bars"></i>
+      </a>
+      
+      <form method="POST" action="/logout">
+        <button class="btn_button_bottom" type="submit" style="
+          display: inline-block;
+          padding: 2.35%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;">
+          <img src="../images/logout.png" alt="logout" width="10%" />
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
+
+    <% if (pedidos.length > 0) { %>
+    <table>
+      <thead>
+				<tr>
+          <th>Plato</th>
+          <th>Precio</th>
+          <th>Dirección</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% pedidos.forEach(pedido => { %>
+        <tr>
+          <td ><%= pedido.plato %></td>
+          <td><%= pedido.precio %>€</td>
+          <td><%= pedido.direccion %></td>
+          <td <% if (pedido.estado === 'pendiente') { %> 
+            style="background-color: #c75000;" 
+            <% } %>
+            <% if (pedido.estado === 'en_proceso') { %> 
+              style="background-color: #e2e600;" 
+            <% } %>
+            <% if (pedido.estado === 'entregado') { %> 
+              style="background-color: #00bb28;" 
+            <% } %>
+            <% if (pedido.estado === 'incidencia') { %> 
+              style="background-color: #ff0000;" 
+            <% } %>
+            ><%= pedido.estado %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } else { %>
+      <p>No hay pedidos.</p>
+    <% } %>
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 2.35% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/restaurants">
+        Volver
+      </a>
+    </div>
+  </body>
+</html>

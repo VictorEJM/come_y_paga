@@ -3,13 +3,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
+const multer = require('multer');
 var session = require('express-session');
+
 // Import the Prisma client and create an instance of the Prisma client
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 // Create an instance of the Express app
 const app = express();
-
+const uploadImage = multer({ dest: 'public/images/' });
 // create a MySQL connection pool
 const pool = mysql.createPool({
   host: 'localhost',
@@ -133,7 +135,7 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { id, username, password } = req.body;
   const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
   console.log('nombre_usuario:', username, 'contrasena_usuario:', hashedPassword);
   
@@ -159,7 +161,12 @@ app.post('/login', async (req, res) => {
     }
     
     console.log('Successful login');
+
+    // TODO: GUARDAR ID DE USUARIO
     req.session.user = username;
+    req.session.user.id = id;
+    console.log('id:' + id);
+    console.log('user.id:' + req.session.user.id);
     req.session.save();
 
     // Redirigir al usuario según su tipo de usuario
@@ -385,8 +392,15 @@ app.get('/confirmation/:id', async (req, res) => {
 // Manejador para mostrar la lista de pedidos
 app.get('/pedidos', async (req, res) => {
   try {
-    // Obtiene la lista de pedidos de la base de datos
+    // Obtiene el ID del usuario conectado
+    const userId = req.session.user.id;
+    console.log("userId: " + userId);
+
+    // Obtiene la lista de pedidos del usuario conectado de la base de datos
     const pedidos = await prisma.pedido.findMany({
+      where: {
+        id_usuario: userId
+      },
       include: {
         usuario: true,
         restaurante: true
@@ -394,7 +408,7 @@ app.get('/pedidos', async (req, res) => {
     });
     
     // Renderiza la plantilla HTML y pasa los datos de los pedidos como contexto
-    res.render('pedidos', { pedidos });
+    res.render('pedidos', { user: req.session.user, pedidos });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al obtener la lista de pedidos');
