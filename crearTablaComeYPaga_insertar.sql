@@ -74,7 +74,8 @@ VALUES
 INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor)
 VALUES
   (1, 1, 'C/Administración 777', '111111111', 12.76, 'pendiente', 'Arroz a la Cubana', 'NADIE'),
-  (3, 2, 'Avenida de la Playa, 5', '987654321', 12.76, 'pendiente', 'Ensalada César', 'NADIE');
+  (3, 2, 'Avenida de la Playa, 5', '987654321', 12.76, 'pendiente', 'Ensalada César', 'NADIE'),
+  (6, 2, 'C/Horjas 12', '927357925', 12.76, 'pendiente', 'Ensalada César', 'NADIE');
 
 -- PRUEBA CON EL DELETE ON CASCADE
 -- DELETE FROM restaurante WHERE id = 1;

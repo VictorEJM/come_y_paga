@@ -8,7 +8,7 @@
 <body>
 	<h1>Editar usuario</h1>
 
-	<form class="formRellenar" method="POST" action="/admin/update">
+	<form class="formRellenar" method="POST" action="/admin/update-user">
 		<input type="hidden" name="id" value="<%= user.id %>">
 
 		<label for="nombre">Nombre:</label>
@@ -47,5 +47,17 @@
 
 		<button type="submit">Guardar cambios</button>
 	</form>
+
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 2.35% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/admin">
+        Volver
+      </a>
+    </div>
 </body>
 </html>

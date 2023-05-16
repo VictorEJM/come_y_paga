@@ -162,11 +162,10 @@ app.post('/login', async (req, res) => {
     
     console.log('Successful login');
 
-    // TODO: GUARDAR ID DE USUARIO
+    // GUARDAR SESIÓN DEL USUARIO
     req.session.user = username;
-    req.session.user.id = id;
-    console.log('id:' + id);
-    console.log('user.id:' + req.session.user.id);
+    req.session.user.id = user.id;
+    console.log('user.id:' + user.id);
     req.session.save();
 
     // Redirigir al usuario según su tipo de usuario
@@ -391,9 +390,15 @@ app.get('/confirmation/:id', async (req, res) => {
 
 // Manejador para mostrar la lista de pedidos
 app.get('/pedidos', async (req, res) => {
+  
   try {
-    // Obtiene el ID del usuario conectado
-    const userId = req.session.user.id;
+    // para obtener la ID del usuario conectado
+    const user = await prisma.usuario.findUnique({
+      where: {
+        nombre_usuario: req.session.user
+      }
+    });
+    const userId = user.id;
     console.log("userId: " + userId);
 
     // Obtiene la lista de pedidos del usuario conectado de la base de datos
@@ -471,7 +476,10 @@ app.post('/repartidor/:id/estado', async (req, res) => {
 app.get('/admin', async (req, res) => {
   try {
     const users = await prisma.usuario.findMany();
-    res.render('admin', { error: '', users });
+    const restaurants = await prisma.restaurante.findMany();
+    const plates = await prisma.plato.findMany();
+    const orders = await prisma.pedido.findMany();
+    res.render('admin', { error: '', users, restaurants, plates, orders });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -479,7 +487,7 @@ app.get('/admin', async (req, res) => {
 });
 
 // Agregar usuario
-app.post('/admin/add', async (req, res) => {
+app.post('/admin/add-user', async (req, res) => {
   const connection = await pool.getConnection();
   // Obtener los datos del formulario
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario, tipo_usuario } = req.body;
@@ -604,7 +612,7 @@ app.post('/admin/edit-user', async function(req, res) {
         id: Number(id),
       },
     });
-    res.render('edit-user', { user });
+    res.render('edit-user', { user, id });
   } catch (error) {
     console.error('EDIT USER ERROR: ', error);
     res.render('error');
@@ -612,7 +620,7 @@ app.post('/admin/edit-user', async function(req, res) {
 });
 
 // Actualizar usuario
-app.post('/admin/update', async function(req, res) {
+app.post('/admin/update-user', async function(req, res) {
   // Obtener los datos del formulario
   const { id, nombre, apellidos, fecha_nacimiento, direccion,
     telefono, email, municipio, 
@@ -640,7 +648,7 @@ app.post('/admin/update', async function(req, res) {
 });
 
 // Eliminar usuario
-app.post('/admin/delete', async function(req, res) {
+app.post('/admin/delete-user', async function(req, res) {
   // Obtener el ID del usuario a eliminar
   const id = req.body.id;
 
