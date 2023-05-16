@@ -628,7 +628,7 @@ app.post('/admin/update-user', async function(req, res) {
 
   // Actualizar los datos del usuario en la tabla de usuario
   const updatedUser = await prisma.usuario.update({
-    where: { id: id ?? '' },
+    where: { id: parseInt(id) },
     data: {
       nombre: nombre ?? '', 
       apellidos: apellidos ?? '', 
@@ -782,30 +782,35 @@ app.post('/admin/edit-restaurant', async function(req, res) {
   }
 });
 
+// TOFIX: HACER QUE ACTUALICE LA IDE Y LAS ESTRELLAS CORRECTAMENTE
 // Actualizar restaurante
 app.post('/admin/update-restaurant', async function(req, res) {
   // Obtener los datos del formulario
   const { id, nombre, tipo_comida, direccion, telefono, 
     email, tipologia, logo, estrellas } = req.body;
 
-  // Actualizar los datos del restaurantE en la tabla de usuario
-  const updatedUser = await prisma.restaurante.update({
-    where: { id: id ?? '' },
-    data: {
-      nombre: nombre ?? '', 
-      tipo_comida: tipo_comida ?? '', 
-      direccion: direccion ?? '', 
-      telefono: telefono ?? '', 
-      email: email ?? '', 
-      tipologia: tipologia ?? '', 
-      logo: logo ?? '', 
-      estrellas: estrellas ?? 1, 
-    },
-  }, 
-  function(error, results, fields) {
-    if (error) throw error;
+  try {
+    // Actualizar los datos del restaurante en la base de datos
+    const updatedRestaurant = await prisma.restaurante.update({
+      where: { id: parseInt(id) }, // Asegúrate de convertir el id a un número entero
+      data: {
+        nombre: nombre ?? '',
+        tipo_comida: tipo_comida ?? '',
+        direccion: direccion ?? '',
+        telefono: telefono ?? '',
+        email: email ?? '',
+        tipologia: tipologia ?? '',
+        logo: logo ?? '',
+        estrellas: { set: parseInt(estrellas) } // Asegúrate de convertir estrellas a un número entero
+      }
+    });
+
     res.redirect('/admin');
-  });
+  } catch (error) {
+    // Manejo de errores
+    console.error(error);
+    res.status(500).send('Error al actualizar el restaurante');
+  }
 });
 
 // Eliminar restaurante
