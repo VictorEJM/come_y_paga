@@ -667,6 +667,167 @@ app.post('/admin/delete-user', async function(req, res) {
   }
 });
 
+// Agregar restaurante
+app.post('/admin/add-restaurant', async (req, res) => {
+  const connection = await pool.getConnection();
+  // Obtener los datos del formulario
+  const { nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas } = req.body;
+  const direccionRegex = /^\s*(?=.{5,100}$).*$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  var errPhrase = "";
+  var hasError = false;
+
+  if (nombre.trim().length < 3 || nombre.trim().length > 50) {
+    errPhrase += 'El nombre no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (tipo_comida.trim().length < 3 || tipo_comida.trim().length > 50) {
+    errPhrase += 'En tipo_comida, no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!direccion || !direccion.match(direccionRegex)) {
+    errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacía.\n';
+    hasError = true;
+  }
+  if (!isNumeric(telefono.trim()) || telefono.trim().length < 9 || telefono.trim().length > 16) {
+    errPhrase += 'El teléfono tiene que ser númerico, no puede ser menor de 4, ni mayor de 16 carácteres, ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!email || !email.match(emailRegex)) {
+    errPhrase += 'El email no coincide o está vacío.\n';
+    hasError = true;
+  }
+  if (tipologia.trim().length < 2 || tipologia.trim().length > 50) {
+    errPhrase += 'La tipologia no puede ser menor de 2 carácteres, ni mayor de 50 carácteres, ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (logo.trim().length < 1) {
+    errPhrase += 'El logo no puede no puede estar vacío, pon la imagen.\n';
+    hasError = true;
+  }
+  if (estrellas < 1 || estrellas > 5) {
+    errPhrase += 'No puede tener menos de 1 estrella, ni más de 5.\n';
+    hasError = true;
+  }
+
+  if (hasError)
+  {
+    //document.getElementById("error").innerHTML = "";
+    res.render('admin', { error: errPhrase, 
+      nombre: nombre ?? '', 
+      tipo_comida: tipo_comida ?? '', 
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      tipologia: tipologia ?? '', 
+      logo: logo ?? '',
+      estrellas: estrellas ?? 1,
+    });
+    return;
+  }
+
+  // Insertar los datos en la tabla de restaurante
+  try {
+    // check if restaurant already exists
+    const existingRestaurant = await prisma.restaurante.findUnique({ where: { nombre } });
+    if (existingRestaurant) {
+      res.render('admin', { error: 'Ese restaurante ya existe',
+        nombre: nombre ?? '', 
+        tipo_comida: tipo_comida ?? '', 
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        email: email ?? '', 
+        tipologia: tipologia ?? '', 
+        logo: logo ?? '',
+        estrellas: estrellas ?? 1,
+      });
+      return;
+    }
+
+    // create new restaurant
+    const newRestaurant = await prisma.restaurante.create({
+      data: {
+        nombre: nombre,
+        tipo_comida: tipo_comida,
+        direccion: direccion,
+        telefono: telefono,
+        email: email,
+        tipologia: tipologia,
+        logo: logo,
+        estrellas: estrellas,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
+});
+
+// Editar restaurante
+app.post('/admin/edit-restaurant', async function(req, res) {
+  // Obtener el ID del restaurante a editar
+  const id = req.body.id;
+  try {
+    // Obtener los datos del restaurante con el ID especificado
+    const restaurant = await prisma.restaurante.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.render('edit-restaurant', { restaurant, id });
+  } catch (error) {
+    console.error('EDIT RESTAURANT ERROR: ', error);
+    res.render('error');
+  }
+});
+
+// Actualizar restaurante
+app.post('/admin/update-restaurant', async function(req, res) {
+  // Obtener los datos del formulario
+  const { id, nombre, tipo_comida, direccion, telefono, 
+    email, tipologia, logo, estrellas } = req.body;
+
+  // Actualizar los datos del restaurantE en la tabla de usuario
+  const updatedUser = await prisma.restaurante.update({
+    where: { id: id ?? '' },
+    data: {
+      nombre: nombre ?? '', 
+      tipo_comida: tipo_comida ?? '', 
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      email: email ?? '', 
+      tipologia: tipologia ?? '', 
+      logo: logo ?? '', 
+      estrellas: estrellas ?? 1, 
+    },
+  }, 
+  function(error, results, fields) {
+    if (error) throw error;
+    res.redirect('/admin');
+  });
+});
+
+// Eliminar restaurante
+app.post('/admin/delete-restaurant', async function(req, res) {
+  // Obtener el ID del restaurante a eliminar
+  const id = req.body.id;
+
+  try {
+    // Eliminar el restaurante de la tabla de restaurante
+    await prisma.restaurante.delete({
+      where: {
+        id: Number(id)
+      }
+    });
+
+    res.redirect('/admin');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el restaurante');
+  }
+});
+
 // Start the server
 app.listen(4000, () => {
   console.log('Server is running on port 4000');

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Editar restaurante</title>
+	<link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+	<h1>Editar restaurante</h1>
+
+	<form class="formRellenar" method="POST" action="/admin/update-restaurant">
+		<input type="hidden" name="id" value="<%= restaurant.id %>">
+
+		<label for="nombre">Nombre:</label>
+		<input type="text" name="nombre" value="<%= restaurant.nombre %>" required>
+
+		<label for="tipo_comida">Tipo de comida:</label>
+		<input type="text" name="tipo_comida" value="<%= restaurant.tipo_comida %>" required>
+
+		<label for="direccion">Dirección:</label>
+		<input type="text" name="direccion" value="<%= restaurant.direccion %>" required>
+
+		<label for="telefono">Teléfono:</label>
+		<input type="tel" name="telefono" value="<%= restaurant.telefono %>" required>
+
+		<label for="email">Correo electrónico:</label>
+		<input type="email" name="email" value="<%= restaurant.email %>" required>
+
+		<label for="tipologia">Tipología:</label>
+		<input type="text" name="tipologia" value="<%= restaurant.tipologia %>" required>
+
+		<label for="logo">Logo:</label>
+		<input type="file" name="logo" value="<%= restaurant.logo %>" required>
+
+		<label for="estrellas">Estrellas:</label>
+		<input type="number" name="estrellas" min="1" max="5" required>
+
+		<label for="tipo_usuario">Tipo de usuario:</label>
+		<select name="tipo_usuario" required>
+			<option value="administrador" <%= restaurant.tipo_usuario === 'administrador' ? 'selected' : '' %>>Administrador</option>
+			<option value="repartidor" <%= restaurant.tipo_usuario === 'repartidor' ? 'selected' : '' %>>Repartidor</option>
+			<option value="cliente" <%= restaurant.tipo_usuario === 'cliente' ? 'selected' : '' %>>Cliente</option>
+		</select>
+
+		<button type="submit">Guardar cambios</button>
+	</form>
+
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 2.35% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/admin">
+        Volver
+      </a>
+    </div>
+</body>
+</html>

@@ -1,8 +1,8 @@
 /* General styles */
 html {
     font-family: Arial, sans-serif;
-    background: rgb(255,121,74);
-    background: linear-gradient(0deg, rgba(255,121,74,1) 0%, rgba(255,198,110,1) 100%); 
+    background: #ff794a;
+    background: linear-gradient(0deg, #ff794a 0%, #ffc66e 100%); 
 }
 
 body {
@@ -11,6 +11,8 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .container {
@@ -150,8 +152,8 @@ body {
     padding: 0;
     font-family: Arial, sans-serif;
     /*background-color: #f2f2f2;*/
-    background: rgb(255,121,74);
-    background: linear-gradient(0deg, rgba(255,121,74,1) 0%, rgba(255,198,110,1) 100%); 
+    background: #ff794a;
+    background: linear-gradient(0deg, #ff794a 0%, #ffc66e 100%); 
 }
 
 h1 {
@@ -164,9 +166,9 @@ h1 {
     margin: 0 auto;
     padding: 20px;
     /*background-color: #fff;*/
-    background: rgb(255,219,168);
-    background: linear-gradient(0deg, rgba(255,219,168,0.7875350823923319) 0%, rgba(255,217,159,1) 100%); 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background: #ffdba8;
+    background: linear-gradient(0deg, #ffdba8c9 0%, #ffd99f 100%); 
+    box-shadow: 0 0 10px #00000033;
 }
 
 .topnavhome {

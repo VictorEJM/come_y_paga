@@ -23,6 +23,9 @@
 			margin-right: 10px;
 		}
 
+		#restaurantes-tabla #platos-tabla #pedidos-tabla {
+			display: none;
+		}
 	</style>
 </head>
 <body>
@@ -222,7 +225,7 @@
 		</table>
 	</div>
 
-	<div id="restaurantes-tabla">
+	<div id="restaurantes-tabla" style="display: none;">
 		<p>GESTIÓN DE LA TABLA RESTAURANTES</p>
 		<button style="background-color: #c8ff0065;" onclick="mostrarFormularioRestaurantes()">
 			<img src="images/admin/insert.png" alt="insertarRestaurante" style=" width: 7%;" />AÑADIR
@@ -315,7 +318,7 @@
 		</table>
 	</div>
 
-	<div id="platos-tabla">
+	<div id="platos-tabla" style="display: none;">
 		<p>GESTIÓN DE LA TABLA PLATOS</p>
 		<button style="background-color: #00ff8865;" onclick="mostrarFormularioPlatos()">
 			<img src="images/admin/insert.png" alt="insertarPlato" style=" width: 7%;" />AÑADIR
@@ -323,7 +326,7 @@
 
 	</div>
 
-	<div id="pedidos-tabla">
+	<div id="pedidos-tabla" style="display: none;">
 		<p>GESTIÓN DE LA TABLA PEDIDOS</p>
 		<button style="background-color: #0084ff65;" onclick="mostrarFormularioPedidos()">
 			<img src="images/admin/insert.png" alt="insertarPedido" style=" width: 7%;" />AÑADIR

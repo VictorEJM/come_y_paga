@@ -50,7 +50,7 @@ model Plato {
   imagen        String
   tipo          TipoPlato     @default(entrante)
   id_restaurante Int          @map("id_restaurante")
-  restaurante   Restaurante   @relation(fields: [id_restaurante], references: [id])
+  restaurante   Restaurante   @relation(fields: [id_restaurante], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 enum TipoPlato {
@@ -70,8 +70,8 @@ model Pedido {
   estado          EstadoPedido  @default(incidencia)
   plato           String
   nombre_repartidor  String     @default("NADIE")
-  usuario         Usuario       @relation(fields: [id_usuario], references: [id])
-  restaurante     Restaurante   @relation(fields: [id_restaurante], references: [id])
+  usuario         Usuario       @relation(fields: [id_usuario], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  restaurante     Restaurante   @relation(fields: [id_restaurante], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 enum EstadoPedido {
