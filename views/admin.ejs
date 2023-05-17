@@ -324,6 +324,87 @@
 			<img src="images/admin/insert.png" alt="insertarPlato" style=" width: 7%;" />AÑADIR
 		</button>
 
+		<!-- TODO: HACER EL FORMULARIO DE PLATOS Y LO DE LOS DATOS DE PLATOS -->
+		<!-- Formulario para agregar platos -->
+		<!--
+		<form id="form-add-plate" method="POST" action="/admin/add-plate" style="display:none;">
+			<label for="nombre">nombre:</label>
+				<input type="text" name="nombre" required>
+			<label for="precio">Precio:</label>
+				<input type="range" name="precio" 
+				min="0.01" max="100.00" value="1.00" required>
+			<label for="imagen">Imagen:</label>
+				<input type="file" name="imagen" accept="image/png, image/gif, image/jpeg" required>
+			<label for="tipo">tipo:</label>
+				<input type="text" name="tipo" required>
+			<label for="id_restaurante">id_restaurante:</label>
+			<select name="id_restaurante" required>
+				<option value="<%= plate.id_restaurant >" <%= plate.id_restaurant === 'administrador' ? 'selected' : '' %>>Administrador</option>
+			</select>
+				<input type="text" name="id_restaurante" required>
+			<button type="submit" style="font-size: 30px">Agregar plato</button>
+		</form>
+		<table>
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>nombre</th>
+					<th>precio</th>
+					<th>Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% plates.forEach(function(plate) { %>
+					<tr>
+						<td><%= plate.id %></td>
+						<td><%= plate.nombre %></td>
+						<td><%= plate.precio %></td>
+						<!--
+							<td><%= plate.imagen %></td>
+							<td><%= plate.tipo %></td>
+							<td><%= plate.id_restaurante %></td>
+						-->
+						<!--
+						<td>
+							<button onclick="mostrarRestauranteDetalles('<%= plate.id %>', 
+								'<%= plate.nombre %>', 
+								'<%= plate.precio %>', 
+								'<%= plate.imagen %>', 
+								'<%= plate.tipo %>', 
+								'<%= plate.id_restaurante %>')"
+								style="background-color:#ff000000;">
+								<img src="images/admin/consult.png" alt="consultarDetalles" style="width: 50px;" />
+							</button>
+							<!-- Botones de acción -->
+							<!--
+							<form method="POST" action="/admin/edit-plate">
+								<input type="hidden" name="id" value="<%= plate.id %>">
+								<button type="submit" style="background-color:#ff000000;">
+									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
+								</button>
+							</form>
+							<form method="POST" action="/admin/delete-plate">
+								<input type="hidden" name="id" value="<%= plate.id %>">
+								<button type="submit" style="background-color:#ff000000;">
+									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />
+								</button>
+							</form>
+						</td>
+					</tr>
+					<td>
+						<div id="plate-details-<%= plate.id %>"
+							style="display: none;
+							padding: 10px;
+							margin: 10px;
+							background-color: #ff9e4e;
+							border: 1px solid #ff5f15;">
+						</div>
+					</td>
+				<% }); %>
+			</tbody>
+		</table>
+	
+	-->
 	</div>
 
 	<div id="pedidos-tabla" style="display: none;">

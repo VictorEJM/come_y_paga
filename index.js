@@ -612,6 +612,13 @@ app.post('/admin/edit-user', async function(req, res) {
         id: Number(id),
       },
     });
+    
+    user.fecha_nacimiento = user.fecha_nacimiento.getFullYear()
+      + '-' + ('0' + (user.fecha_nacimiento.getMonth() + 1)).slice(-2)
+      + '-' + ('0' + user.fecha_nacimiento.getDate()).slice(-2);
+      //value="2000-01-01"
+
+    console.log("user.fecha_nacimiento: " + user.fecha_nacimiento);
     res.render('edit-user', { user, id });
   } catch (error) {
     console.error('EDIT USER ERROR: ', error);
@@ -625,26 +632,36 @@ app.post('/admin/update-user', async function(req, res) {
   const { id, nombre, apellidos, fecha_nacimiento, direccion,
     telefono, email, municipio, 
     nombre_usuario, contrasena_usuario } = req.body;
+    const fecha = new Date(fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
+    const sha256Password = crypto.createHash('sha256').update(contrasena_usuario).digest('hex');
+  
+  try {
+    // Actualizar los datos del usuario en la tabla de usuario
+    const updatedUser = await prisma.usuario.update({
+      where: { id: parseInt(id) },
+      data: {
+        nombre: nombre ?? '', 
+        apellidos: apellidos ?? '', 
+        fecha_nacimiento: new Date(fecha) ?? '', 
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        email: email ?? '', 
+        municipio: municipio ?? '', 
+        nombre_usuario: nombre_usuario ?? '', 
+        contrasena_usuario: sha256Password ?? '', 
+      },
+    }, 
+    function(error, results, fields) {
+      if (error) throw error;
+      res.render('/admin', { error: 'No se pudo actualizar el usuario' });
+    });
 
-  // Actualizar los datos del usuario en la tabla de usuario
-  const updatedUser = await prisma.usuario.update({
-    where: { id: parseInt(id) },
-    data: {
-      nombre: nombre ?? '', 
-      apellidos: apellidos ?? '', 
-      fecha_nacimiento: fecha_nacimiento ?? '', 
-      direccion: direccion ?? '', 
-      telefono: telefono ?? '', 
-      email: email ?? '', 
-      municipio: municipio ?? '', 
-      nombre_usuario: nombre_usuario ?? '', 
-      contrasena_usuario: contrasena_usuario ?? '', 
-    },
-  }, 
-  function(error, results, fields) {
-    if (error) throw error;
     res.redirect('/admin');
-  });
+  } catch (error) {
+    // Manejo de errores
+    console.error(error);
+    res.status(500).send('Error al actualizar el usuario');
+  }
 });
 
 // Eliminar usuario
@@ -782,7 +799,6 @@ app.post('/admin/edit-restaurant', async function(req, res) {
   }
 });
 
-// TOFIX: HACER QUE ACTUALICE LA IDE Y LAS ESTRELLAS CORRECTAMENTE
 // Actualizar restaurante
 app.post('/admin/update-restaurant', async function(req, res) {
   // Obtener los datos del formulario
