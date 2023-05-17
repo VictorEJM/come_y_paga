@@ -68,8 +68,8 @@ VALUES
 
 INSERT INTO plato (nombre, precio, imagen, tipo, id_restaurante) 
 VALUES
-  ('Ensalada César', 12.50, 'ensalada_cesar-2023-04-01', 'entrante', 1), 
-  ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03', 'principal', 2);
+  ('Ensalada César', 12.50, 'ensalada_cesar-2023-04-01.jpg', 'entrante', 1), 
+  ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03.jpg', 'principal', 2);
 
 INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor)
 VALUES
