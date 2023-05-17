@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Editar pedido</title>
+	<link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+	<h1>Editar pedido</h1>
+
+	<form class="formRellenar" method="POST" action="/admin/update-order">
+		<input type="hidden" name="id" value="<%= order.id %>">
+		
+		<label for="id_usuario">Usuario:</label>
+		<select name="id_usuario" required>
+			<% users.forEach(function(user) { %>
+				<option value="<%= user.id %>"><%= user.nombre_usuario %></option>
+			<% }); %>
+		</select>
+		
+		<label for="id_restaurante">Restaurante:</label>
+		<select name="id_restaurante" required>
+			<% restaurants.forEach(function(restaurant) { %>
+				<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
+			<% }); %>
+		</select>
+
+		<label for="direccion">Dirección:</label>
+		<input type="text" name="direccion" value="<%= order.direccion %>" required>
+
+		<label for="telefono">Teléfono:</label>
+		<input type="tel" name="telefono" value="<%= order.telefono %>" required>
+
+		<label for="precio">Precio:</label>
+			<input type="range" name="precio" 
+			min="0.01" max="100.00" value="<%= order.precio %>" step="0.01"
+			oninput="this.nextElementSibling.value = this.value" required> 
+			<output><%= order.precio %></output>
+
+		<label for="estado">Estado:</label>
+			<select name="estado" required>
+			  <option value="pendiente" <%= order.estado === 'pendiente' ? 'selected' : '' %>>Pendiente</option>
+			  <option value="en_proceso" <%= order.estado === 'en_proceso' ? 'selected' : '' %>>En proceso</option>
+			  <option value="entregado" <%= order.estado === 'entregado' ? 'selected' : '' %>>Entregado</option>
+			  <option value="incidencia" <%= order.estado === 'incidencia' ? 'selected' : '' %>>Incidencia</option>
+			</select>
+			
+		<label for="plato">Nombre del plato:</label>
+		<input type="text" name="plato" value="<%= order.plato %>" required>
+
+		<label for="nombre_repartidor">Nombre del repartidor:</label>
+		<input type="text" name="nombre_repartidor" value="<%= order.nombre_repartidor %>" required>
+		
+		<button type="submit">Guardar cambios</button>
+	</form>
+
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 2.35% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/admin">
+        Volver
+      </a>
+    </div>
+</body>
+</html>

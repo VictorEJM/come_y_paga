@@ -938,6 +938,7 @@ app.post('/admin/add-plate', async (req, res) => {
 
 // Editar plato
 app.post('/admin/edit-plate', async function(req, res) {
+  const restaurants = await prisma.restaurante.findMany(); // para mostrar los restaurantes que hay
   // Obtener el ID del plato a editar
   const id = req.body.id;
   try {
@@ -947,7 +948,7 @@ app.post('/admin/edit-plate', async function(req, res) {
         id: Number(id),
       },
     });
-    res.render('edit-plate', { plate, id });
+    res.render('edit-plate', { plate, id, restaurants });
   } catch (error) {
     console.error('EDIT PLATE ERROR: ', error);
     res.render('error');
@@ -968,7 +969,7 @@ app.post('/admin/update-plate', async function(req, res) {
         precio: { set: parseFloat(precio) }, // Asegúrate de convertir precio a un número flotante
         imagen: imagen ?? '', 
         tipo: tipo ?? '', 
-        id_restaurante: id_restaurante ?? '',
+        id_restaurante: { set: parseInt(id_restaurante) },
       }
     });
 
@@ -1004,7 +1005,171 @@ app.post('/admin/delete-plate', async function(req, res) {
 /**********/
 /* PEDIDO */
 /**********/
+// Agregar pedido
+app.post('/admin/add-order', async (req, res) => {
+  const connection = await pool.getConnection();
+  // Obtener los datos del formulario
+  const { id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
+  const direccionRegex = /^\s*(?=.{5,100}$).*$/;
 
+  var errPhrase = "";
+  var hasError = false;
+
+  if (id_usuario.trim().length < 1) {
+    errPhrase += 'Por favor, selecciona un usuario.\n';
+    hasError = true;
+  }
+  if (id_restaurante.trim().length < 1) {
+    errPhrase += 'Por favor, selecciona un restaurante.\n';
+    hasError = true;
+  }
+  if (!direccion || !direccion.match(direccionRegex)) {
+    errPhrase += 'La dirección no puede ser menor de 5 carácteres, ni mayor de 100 carácteres ni puede estar vacía.\n';
+    hasError = true;
+  }
+  if (!isNumeric(telefono.trim()) || telefono.trim().length < 9 || telefono.trim().length > 16) {
+    errPhrase += 'El teléfono tiene que ser númerico, no puede ser menor de 4, ni mayor de 16 carácteres, ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!isNumeric(precio.trim()) || precio < 0.01 || precio > 100) {
+    errPhrase += 'El precio no puede ser menos de 0.01 ni más de 100 euros.\n';
+    hasError = true;
+  }
+  if (estado.trim().length < 1) {
+    errPhrase += 'Por favor, selecciona un estado.\n';
+    hasError = true;
+  }
+  if (plato.trim().length < 3 || plato.trim().length > 50) {
+    errPhrase += 'El nombre del plato no puede estar vacío ni tener menos de 3 caráteres ni mayor de 50 carácteres.\n';
+    hasError = true;
+  }
+  if (nombre_repartidor.trim().length < 1) {
+    errPhrase += 'Por favor, selecciona un repartidor.\n';
+    hasError = true;
+  }
+
+  if (hasError)
+  {
+    //document.getElementById("error").innerHTML = "";
+    res.render('admin', { error: errPhrase, 
+      id_usuario: id_usuario ?? '',
+      id_restaurante: id_restaurante ?? '',
+      direccion: direccion ?? '', 
+      telefono: telefono ?? '', 
+      precio: precio ?? '', 
+      estado: estado ?? '', 
+      plato: plato ?? '', 
+      nombre_repartidor: nombre_repartidor ?? '', 
+    });
+    return;
+  }
+
+  // Insertar los datos en la tabla de pedido
+  try {
+    // check if order already exists
+    const existingOrder = await prisma.pedido.findFirst({ where: { id } });
+    if (existingOrder) {
+      res.render('admin', { error: 'Ese pedido ya existe',
+        id_usuario: id_usuario ?? '',
+        id_restaurante: id_restaurante ?? '',
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        precio: precio ?? '', 
+        estado: estado ?? '', 
+        plato: plato ?? '', 
+        nombre_repartidor: nombre_repartidor ?? '', 
+      });
+      return;
+    }
+
+    // create new order
+    const newPlate = await prisma.pedido.create({
+      data: {
+        id_usuario: id_usuario,
+        id_restaurante: id_restaurante,
+        direccion: direccion, 
+        telefono: telefono, 
+        precio: precio, 
+        estado: estado, 
+        plato: plato, 
+        nombre_repartidor: nombre_repartidor, 
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
+});
+
+// Editar pedido
+app.post('/admin/edit-order', async function(req, res) {
+  const users = await prisma.usuario.findMany(); // para mostrar los usuarios que hay
+  const restaurants = await prisma.restaurante.findMany(); // para mostrar los restaurantes que hay
+  // Obtener el ID del plato a editar
+  const id = req.body.id;
+  try {
+    // Obtener los datos del plato con el ID especificado
+    const order = await prisma.plato.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.render('edit-order', { order, id, users, restaurants });
+  } catch (error) {
+    console.error('EDIT ORDER ERROR: ', error);
+    res.render('error');
+  }
+});
+
+// Actualizar pedido
+app.post('/admin/update-order', async function(req, res) {
+  // Obtener los datos del formulario
+  const { id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
+
+  try {
+    // Actualizar los datos del pedido en la base de datos
+    const updatedOrder = await prisma.pedido.update({
+      where: { id: parseInt(id) }, // Asegúrate de convertir el id a un número entero
+      data: {
+        
+        id_usuario: { set: parseInt(id_usuario) },
+        id_restaurante: { set: parseInt(id_restaurante) },
+        direccion: direccion ?? '', 
+        telefono: telefono ?? '', 
+        precio: { set: parseFloat(precio) }, // Asegúrate de convertir precio a un número flotante
+        estado: estado ?? '', 
+        plato: plato ?? '', 
+        nombre_repartidor: nombre_repartidor ?? '',
+      }
+    });
+
+    res.redirect('/admin');
+  } catch (error) {
+    // Manejo de errores
+    console.error(error);
+    res.status(500).send('Error al actualizar el pedido');
+  }
+});
+
+// Eliminar pedido
+app.post('/admin/delete-order', async function(req, res) {
+  // Obtener el ID del pedido a eliminar
+  const id = req.body.id;
+
+  try {
+    // Eliminar el pedido de la tabla de pedido
+    await prisma.pedido.delete({
+      where: {
+        id: Number(id)
+      }
+    });
+
+    res.redirect('/admin');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el pedido');
+  }
+});
 
 // Start the server
 app.listen(4000, () => {

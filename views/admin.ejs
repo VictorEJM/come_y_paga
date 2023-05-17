@@ -58,6 +58,7 @@
 				document.getElementById("platos-tabla").style.display = "none";
 		}
 
+		// MOSTRAR DETALLES Y FORMULARIOS
 		function mostrarUsuarioDetalles(id, nombre, apellidos, direccion, telefono, municipio) {
 			var divDetalles = document.getElementById("user-details-" + id);
 			divDetalles.style.display = 
@@ -109,18 +110,36 @@
 		function mostrarFormularioPlatos() {
 			document.getElementById("form-add-plate").style.display = "block";
 		}
+
+		function mostrarPedidoDetalles(id, user_name, restaurant_name, direccion, telefono, precio, estado, nombre_repartidor) {
+			var divDetalles = document.getElementById("order-details-" + id);
+			divDetalles.style.display = 
+			 (divDetalles.style.display === "none")
+				? "block"
+				: divDetalles.style.display = "none";
+			divDetalles.innerHTML = "<p>Nombre de usuario: " + user_name + "</p>" +
+									"<p>Dirección: " + direccion + "</p>" +
+									"<p>Teléfono: " + telefono + "</p>" +
+									"<p>Restaurante: " + restaurant_name + "</p>" +
+									"<p>Precio: " + precio + "</p>" +
+									"<p>Nombre del repartidor: " + nombre_repartidor + "</p>" +
+									"<p>Estado: " + estado + "</p>";
+		}
+		function mostrarFormularioPedidos() {
+			document.getElementById("form-add-order").style.display = "block";
+		}
 	</script>
 	<center>
 		<form method="POST" action="/logout">
-		  <button class="btn_button_bottom" type="submit" style="
-			display: inline-block;
-			padding: 2.35%;
-			font-size: 46px;
-			text-align: center;
-			text-decoration: none;">
-			<img src="images/logout.png" alt="logout" width="10%" />
-			Cerrar sesión
-		  </button>
+			<button class="btn_button_bottom" type="submit" style="
+				display: inline-block;
+				padding: 2.35%;
+				font-size: 46px;
+				text-align: center;
+				text-decoration: none;">
+				<img src="images/logout.png" alt="logout" width="10%" />
+				Cerrar sesión
+			</button>
 		</form>
 
 		<div id="botonesTablas">
@@ -362,7 +381,7 @@
 				<% restaurants.forEach(function(restaurant) { %>
 					<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
 				<% }); %>
-			</select>			  
+			</select>
 			<button type="submit" style="font-size: 30px">Agregar plato</button>
 		</form>
 		<table>
@@ -426,7 +445,6 @@
 		</table>
 	</div>
 
-	<!-- TODO: HACER LA TABLA PEDIDO -->
 	<div id="pedidos-tabla" style="display: none;">
 		<p>GESTIÓN DE LA TABLA PEDIDOS</p>
 		<button style="background-color: #0084ff65;" onclick="mostrarFormularioPedidos()">
@@ -446,32 +464,101 @@
 				<% restaurants.forEach(function(restaurant) { %>
 					<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
 				<% }); %>
-			</select>	
-			<label for="nombre">nombre:</label>
-				<input type="text" name="nombre" required>
+			</select>
+			<label for="direccion">direccion:</label>
+				<input type="text" name="direccion" required>
+			<label for="telefono">telefono:</label>
+				<input type="text" name="telefono" required>
 			<label for="precio">precio:</label>
 				<input type="range" name="precio" 
 				min="0.01" max="100.00" value="1.00" step="0.01"
 				oninput="this.nextElementSibling.value = this.value" required> 
 				<output>1.00</output>
-				
+			<label for="estado">estado:</label>
+				<input type="radio" name="estado" value="pendiente" required> Pendiente
+				<input type="radio" name="estado" value="en_proceso" required> En proceso
+				<input type="radio" name="estado" value="entregado" required> Entregado
+				<input type="radio" name="estado" value="incidencia" required> Incidencia
+			<label for="plato">plato:</label>
+			<select name="plato" required>
+				<% plates.forEach(function(plate) { %>
+					<option value="<%= plate.nombre %>"><%= plate.nombre %></option>
+				<% }); %>
+			</select>
 			<label for="nombre_repartidor">nombre_repartidor:</label>
 			<select name="nombre_repartidor" required>
-				<!-- TODO: PONER UN WHERE A TAL TIPO repartidor -->
-				<% users.forEach(function(user) { %>
+				<% users.filter(function(user) { return user.tipo_usuario === "repartidor"; }).forEach(function(user) { %>
 					<option value="<%= user.id %>"><%= user.nombre %></option>
 				<% }); %>
 			</select>
-
-			<label for="imagen">imagen:</label>
-				<input type="file" name="imagen" accept="image/png, image/gif, image/jpeg" required>
-			<label for="tipo">tipo:</label>
-				<input type="radio" name="tipo" value="entrante" required> Entrante
-				<input type="radio" name="tipo" value="principal" required> Principal
-				<input type="radio" name="tipo" value="postre" required> Postre
-				<input type="radio" name="tipo" value="bebida" required> Bebida
-			<button type="submit" style="font-size: 30px">Agregar plato</button>
+			<button type="submit" style="font-size: 30px">Agregar pedido</button>
 		</form>
+		<table>
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>plato</th>
+					<th>estado</th>
+					<th>Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% orders.forEach(function(order) { %>
+					<tr>
+						<td><%= order.id %></td>
+						<td><%= order.plato %></td>
+						<td><%= order.estado %></td>
+						<!--
+							<td><%= order.id_usuario %></td>
+							<td><%= order.id_restaurante %></td>
+							<td><%= order.direccion %></td>
+							<td><%= order.telefono %></td>
+							<td><%= order.precio %></td>
+							<td><%= order.nombre_repartidor %></td>
+						-->
+						<% var restaurant_name = ''; %>
+						<% restaurants.find(function(restaurant) { if (restaurant.id === order.id_restaurante) { restaurant_name = restaurant.nombre; return;} }); %>
+						<% var user_name = ''; %>
+						<% users.find(function(user) { if (user.id === order.id_usuario) { user_name = user.nombre; return;} }); %>
+						<td>
+							<button onclick="mostrarPedidoDetalles('<%= order.id %>', 
+								'<%= user_name %>', 
+								'<%= restaurant_name %>', 
+								'<%= order.direccion %>', 
+								'<%= order.telefono %>', 
+								'<%= order.precio %>', 
+								'<%= order.estado %>', 
+								'<%= order.nombre_repartidor %>')"
+								style="background-color:#ff000000;">
+								<img src="images/admin/consult.png" alt="consultarDetalles" style="width: 50px;" />
+							</button>
+							<!-- Botones de acción -->
+							<form method="POST" action="/admin/edit-order">
+								<input type="hidden" name="id" value="<%= order.id %>">
+								<button type="submit" style="background-color:#ff000000;">
+									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
+								</button>
+							</form>
+							<form method="POST" action="/admin/delete-order">
+								<input type="hidden" name="id" value="<%= order.id %>">
+								<button type="submit" style="background-color:#ff000000;">
+									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />
+								</button>
+							</form>
+						</td>
+						<td>
+							<div id="order-details-<%= order.id %>"
+								style="display: none;
+								padding: 10px;
+								margin: 10px;
+								background-color: #ff9e4e;
+								border: 1px solid #ff5f15;">
+							</div>
+						</td>
+					</tr>
+				<% }); %>
+			</tbody>
+		</table>
 	</div>
 </center>
 </body>
