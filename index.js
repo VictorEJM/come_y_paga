@@ -471,7 +471,8 @@ app.post('/repartidor/:id/estado', async (req, res) => {
 /*************************************/
 /********** ADMINISTRACIÓN ***********/
 /*************************************/
-// TODO: PROBAR Y HACER ALGUNOS AJUSTES, SOLO HAY TABLA DE usuario, FALTAN LAS DEMÁS
+// TODO: PROBAR Y HACER ALGUNOS AJUSTES, 
+// SOLO HAY TABLA DE usuario, restaurante, plato. FALTA LA DE pedido
 
 app.get('/admin', async (req, res) => {
   try {
@@ -486,6 +487,10 @@ app.get('/admin', async (req, res) => {
   }
 });
 
+
+/***********/
+/* USUARIO */
+/***********/
 // Agregar usuario
 app.post('/admin/add-user', async (req, res) => {
   const connection = await pool.getConnection();
@@ -684,6 +689,10 @@ app.post('/admin/delete-user', async function(req, res) {
   }
 });
 
+
+/***************/
+/* RESTAURANTE */
+/***************/
 // Agregar restaurante
 app.post('/admin/add-restaurant', async (req, res) => {
   const connection = await pool.getConnection();
@@ -720,7 +729,7 @@ app.post('/admin/add-restaurant', async (req, res) => {
     hasError = true;
   }
   if (logo.trim().length < 1) {
-    errPhrase += 'El logo no puede no puede estar vacío, pon la imagen.\n';
+    errPhrase += 'El logo no puede estar vacío, pon la imagen.\n';
     hasError = true;
   }
   if (estrellas < 1 || estrellas > 5) {
@@ -848,6 +857,154 @@ app.post('/admin/delete-restaurant', async function(req, res) {
     res.status(500).send('Error al eliminar el restaurante');
   }
 });
+
+
+/*********/
+/* PLATO */
+/*********/
+// Agregar plato
+app.post('/admin/add-plate', async (req, res) => {
+  const connection = await pool.getConnection();
+  // Obtener los datos del formulario
+  const { nombre, precio, imagen, tipo, id_restaurante } = req.body;
+  
+  var errPhrase = "";
+  var hasError = false;
+
+  if (nombre.trim().length < 3 || nombre.trim().length > 50) {
+    errPhrase += 'El nombre no puede ser menor de 3 carácteres ni puede estar vacío.\n';
+    hasError = true;
+  }
+  if (!isNumeric(precio.trim()) || precio < 0.01 || precio > 100) {
+    errPhrase += 'El precio no puede ser menos de 0.01 ni más de 100 euros.\n';
+    hasError = true;
+  }
+  if (imagen.trim().length < 1) {
+    errPhrase += 'La imagen no puede estar vacía, pon la imagen.\n';
+    hasError = true;
+  }
+  if (tipo.trim().length < 3 || tipo.trim().length > 50) {
+    errPhrase += 'El tipo no puede estar vacío ni tener menos de 3 caráteres ni mayor de 50 carácteres.\n';
+    hasError = true;
+  }
+  if (id_restaurante.trim().length < 1) {
+    errPhrase += 'Por favor, selecciona un restaurante.\n';
+    hasError = true;
+  }
+
+  if (hasError)
+  {
+    //document.getElementById("error").innerHTML = "";
+    res.render('admin', { error: errPhrase, 
+      nombre: nombre ?? '', 
+      precio: precio ?? '', 
+      imagen: imagen ?? '', 
+      tipo: tipo ?? '', 
+      id_restaurante: id_restaurante ?? '',
+    });
+    return;
+  }
+
+  // Insertar los datos en la tabla de plato
+  try {
+    // check if plate already exists
+    const existingPlate = await prisma.plato.findFirst({ where: { id } });
+    if (existingPlate) {
+      res.render('admin', { error: 'Ese plato ya existe',
+        nombre: nombre ?? '', 
+        precio: precio ?? '', 
+        imagen: imagen ?? '', 
+        tipo: tipo ?? '', 
+        id_restaurante: id_restaurante ?? '',
+      });
+      return;
+    }
+
+    // create new plate
+    const newPlate = await prisma.plato.create({
+      data: {
+        nombre: nombre,
+        precio: precio, 
+        imagen: imagen, 
+        tipo: tipo, 
+        id_restaurante: id_restaurante,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
+});
+
+// Editar plato
+app.post('/admin/edit-plate', async function(req, res) {
+  // Obtener el ID del plato a editar
+  const id = req.body.id;
+  try {
+    // Obtener los datos del plato con el ID especificado
+    const plate = await prisma.plato.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    res.render('edit-plate', { plate, id });
+  } catch (error) {
+    console.error('EDIT PLATE ERROR: ', error);
+    res.render('error');
+  }
+});
+
+// Actualizar plato
+app.post('/admin/update-plate', async function(req, res) {
+  // Obtener los datos del formulario
+  const { nombre, precio, imagen, tipo, id_restaurante } = req.body;
+
+  try {
+    // Actualizar los datos del plato en la base de datos
+    const updatedPlate = await prisma.plato.update({
+      where: { id: parseInt(id) }, // Asegúrate de convertir el id a un número entero
+      data: {
+        nombre: nombre ?? '',
+        precio: { set: parseFloat(precio) }, // Asegúrate de convertir precio a un número flotante
+        imagen: imagen ?? '', 
+        tipo: tipo ?? '', 
+        id_restaurante: id_restaurante ?? '',
+      }
+    });
+
+    res.redirect('/admin');
+  } catch (error) {
+    // Manejo de errores
+    console.error(error);
+    res.status(500).send('Error al actualizar el plato');
+  }
+});
+
+// Eliminar plato
+app.post('/admin/delete-plate', async function(req, res) {
+  // Obtener el ID del plato a eliminar
+  const id = req.body.id;
+
+  try {
+    // Eliminar el plato de la tabla de plato
+    await prisma.plato.delete({
+      where: {
+        id: Number(id)
+      }
+    });
+
+    res.redirect('/admin');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el plato');
+  }
+});
+
+
+/**********/
+/* PEDIDO */
+/**********/
+
 
 // Start the server
 app.listen(4000, () => {

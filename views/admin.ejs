@@ -353,7 +353,10 @@
 			<label for="imagen">imagen:</label>
 				<input type="file" name="imagen" accept="image/png, image/gif, image/jpeg" required>
 			<label for="tipo">tipo:</label>
-				<input type="text" name="tipo" required>
+				<input type="radio" name="tipo" value="entrante" required> Entrante
+				<input type="radio" name="tipo" value="principal" required> Principal
+				<input type="radio" name="tipo" value="postre" required> Postre
+				<input type="radio" name="tipo" value="bebida" required> Bebida
 			<label for="id_restaurante">id_restaurante:</label>
 			<select name="id_restaurante" required>
 				<% restaurants.forEach(function(restaurant) { %>
@@ -421,15 +424,54 @@
 				<% }); %>
 			</tbody>
 		</table>
-	
 	</div>
 
+	<!-- TODO: HACER LA TABLA PEDIDO -->
 	<div id="pedidos-tabla" style="display: none;">
 		<p>GESTIÓN DE LA TABLA PEDIDOS</p>
 		<button style="background-color: #0084ff65;" onclick="mostrarFormularioPedidos()">
 			<img src="images/admin/insert.png" alt="insertarPedido" style=" width: 7%;" />AÑADIR
 		</button>
 
+		<!-- Formulario para agregar pedidos -->
+		<form id="form-add-order" method="POST" action="/admin/add-order" style="display:none;">
+			<label for="id_usuario">id_usuario:</label>
+			<select name="id_usuario" required>
+				<% users.forEach(function(user) { %>
+					<option value="<%= user.id %>"><%= user.nombre_usuario %></option>
+				<% }); %>
+			</select>
+			<label for="id_restaurante">id_restaurante:</label>
+			<select name="id_restaurante" required>
+				<% restaurants.forEach(function(restaurant) { %>
+					<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
+				<% }); %>
+			</select>	
+			<label for="nombre">nombre:</label>
+				<input type="text" name="nombre" required>
+			<label for="precio">precio:</label>
+				<input type="range" name="precio" 
+				min="0.01" max="100.00" value="1.00" step="0.01"
+				oninput="this.nextElementSibling.value = this.value" required> 
+				<output>1.00</output>
+				
+			<label for="nombre_repartidor">nombre_repartidor:</label>
+			<select name="nombre_repartidor" required>
+				<!-- TODO: PONER UN WHERE A TAL TIPO repartidor -->
+				<% users.forEach(function(user) { %>
+					<option value="<%= user.id %>"><%= user.nombre %></option>
+				<% }); %>
+			</select>
+
+			<label for="imagen">imagen:</label>
+				<input type="file" name="imagen" accept="image/png, image/gif, image/jpeg" required>
+			<label for="tipo">tipo:</label>
+				<input type="radio" name="tipo" value="entrante" required> Entrante
+				<input type="radio" name="tipo" value="principal" required> Principal
+				<input type="radio" name="tipo" value="postre" required> Postre
+				<input type="radio" name="tipo" value="bebida" required> Bebida
+			<button type="submit" style="font-size: 30px">Agregar plato</button>
+		</form>
 	</div>
 </center>
 </body>
