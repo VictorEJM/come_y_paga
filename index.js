@@ -514,6 +514,10 @@ app.get('/admin', async (req, res) => {
 // Agregar usuario
 app.post('/admin/add-user', async (req, res) => {
   const connection = await pool.getConnection();
+  const users = await prisma.usuario.findMany();
+  const restaurants = await prisma.restaurante.findMany();
+  const plates = await prisma.plato.findMany();
+  const orders = await prisma.pedido.findMany();
   // Obtener los datos del formulario
   const { nombre, apellidos, direccion, telefono, email, municipio, nombre_usuario, contrasena_usuario, tipo_usuario } = req.body;
   const fecha_nacimiento = new Date(req.body.fecha_nacimiento).toISOString().slice(0, 19).replace('T', ' ');
@@ -570,7 +574,7 @@ app.post('/admin/add-user', async (req, res) => {
   if (hasError)
   {
     //document.getElementById("error").innerHTML = "";
-    res.render('admin', { error: errPhrase, 
+    res.render('admin', { error: errPhrase, users, restaurants, plates, orders,
       nombre: nombre ?? '', 
       apellidos: apellidos ?? '', 
       fecha_nacimiento: req.body.fecha_nacimiento ?? '',
@@ -620,6 +624,8 @@ app.post('/admin/add-user', async (req, res) => {
         tipo_usuario: tipo_usuario,
       },
     });
+
+    res.redirect('/admin');
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -770,7 +776,7 @@ app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (r
       email: email ?? '', 
       tipologia: tipologia ?? '', 
       logo: logoPath ?? '',
-      estrellas: estrellas ?? 1,
+      estrellas: parseInt(estrellas) ?? 1,
     });
     return;
   }
@@ -806,6 +812,7 @@ app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (r
         estrellas: parseInt(estrellas),
       },
     });
+
     res.redirect('/admin');
   } catch (error) {
     console.log(error);
@@ -896,9 +903,14 @@ app.post('/admin/delete-restaurant', async function(req, res) {
 /* PLATO */
 /*********/
 // Agregar plato
-app.post('/admin/add-plate', async (req, res) => {
+app.post('/admin/add-plate', uploadImagePlate.single('imagen'), async (req, res) => {
   const connection = await pool.getConnection();
+  const users = await prisma.usuario.findMany();
+  const restaurants = await prisma.restaurante.findMany();
+  const plates = await prisma.plato.findMany();
+  const orders = await prisma.pedido.findMany();
   // Obtener los datos del formulario
+  const imagenPath = req.file ? req.file.filename : ''; // Obtén el nombre del archivo si existe
   const { nombre, precio, imagen, tipo, id_restaurante } = req.body;
   
   var errPhrase = "";
@@ -912,7 +924,7 @@ app.post('/admin/add-plate', async (req, res) => {
     errPhrase += 'El precio no puede ser menos de 0.01 ni más de 100 euros.\n';
     hasError = true;
   }
-  if (imagen.trim().length < 1) {
+  if (imagenPath.length < 1) {
     errPhrase += 'La imagen no puede estar vacía, pon la imagen.\n';
     hasError = true;
   }
@@ -928,10 +940,10 @@ app.post('/admin/add-plate', async (req, res) => {
   if (hasError)
   {
     //document.getElementById("error").innerHTML = "";
-    res.render('admin', { error: errPhrase, 
+    res.render('admin', { error: errPhrase, users, restaurants, plates, orders,
       nombre: nombre ?? '', 
       precio: precio ?? '', 
-      imagen: imagen ?? '', 
+      imagen: imagenPath ?? '', 
       tipo: tipo ?? '', 
       id_restaurante: id_restaurante ?? '',
     });
@@ -941,14 +953,14 @@ app.post('/admin/add-plate', async (req, res) => {
   // Insertar los datos en la tabla de plato
   try {
     // check if plate already exists
-    const existingPlate = await prisma.plato.findFirst({ where: { id } });
+    const existingPlate = await prisma.plato.findFirst({ where: { nombre } });
     if (existingPlate) {
-      res.render('admin', { error: 'Ese plato ya existe',
+      res.render('admin', { error: 'Ese plato ya existe', users, restaurants, plates, orders,
         nombre: nombre ?? '', 
-        precio: precio ?? '', 
-        imagen: imagen ?? '', 
+        precio: parseFloat(precio) ?? 0.00, 
+        imagen: imagenPath ?? '', 
         tipo: tipo ?? '', 
-        id_restaurante: id_restaurante ?? '',
+        id_restaurante: Number(id_restaurante) ?? '',
       });
       return;
     }
@@ -957,12 +969,14 @@ app.post('/admin/add-plate', async (req, res) => {
     const newPlate = await prisma.plato.create({
       data: {
         nombre: nombre,
-        precio: precio, 
-        imagen: imagen, 
+        precio: parseFloat(precio) ?? 0.00, 
+        imagen: imagenPath, 
         tipo: tipo, 
-        id_restaurante: id_restaurante,
+        id_restaurante: Number(id_restaurante),
       },
     });
+
+    res.redirect('/admin');
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -988,9 +1002,10 @@ app.post('/admin/edit-plate', async function(req, res) {
 });
 
 // Actualizar plato
-app.post('/admin/update-plate', async function(req, res) {
+app.post('/admin/update-plate', uploadImagePlate.single('imagen'), async function(req, res) {
   // Obtener los datos del formulario
-  const { nombre, precio, imagen, tipo, id_restaurante } = req.body;
+  const imagenPath = req.file ? req.file.filename : req.body.imagen; // Obtén el nombre del archivo si existe
+  const { id, nombre, precio, imagen, tipo, id_restaurante } = req.body;
 
   try {
     // Actualizar los datos del plato en la base de datos
@@ -998,10 +1013,10 @@ app.post('/admin/update-plate', async function(req, res) {
       where: { id: parseInt(id) }, // Asegúrate de convertir el id a un número entero
       data: {
         nombre: nombre ?? '',
-        precio: { set: parseFloat(precio) }, // Asegúrate de convertir precio a un número flotante
-        imagen: imagen ?? '', 
+        precio: parseFloat(precio), // Asegúrate de convertir precio a un número flotante
+        imagen: imagenPath, 
         tipo: tipo ?? '', 
-        id_restaurante: { set: parseInt(id_restaurante) },
+        id_restaurante: Number(id_restaurante),
       }
     });
 
@@ -1025,7 +1040,7 @@ app.post('/admin/delete-plate', async function(req, res) {
     });
 
     // Verificar si el plato existe y si tiene un archivo de imagen asociado
-    if (plateToDelete && plateToDelete.logo) {
+    if (plateToDelete && plateToDelete.imagen) {
       // Construir la ruta completa del archivo de imagen
       const imagePath = path.join(__dirname, 'public', 'images', 'plate', plateToDelete.imagen);
 
@@ -1052,6 +1067,10 @@ app.post('/admin/delete-plate', async function(req, res) {
 // Agregar pedido
 app.post('/admin/add-order', async (req, res) => {
   const connection = await pool.getConnection();
+  const users = await prisma.usuario.findMany();
+  const restaurants = await prisma.restaurante.findMany();
+  const plates = await prisma.plato.findMany();
+  const orders = await prisma.pedido.findMany();
   // Obtener los datos del formulario
   const { id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
@@ -1095,12 +1114,12 @@ app.post('/admin/add-order', async (req, res) => {
   if (hasError)
   {
     //document.getElementById("error").innerHTML = "";
-    res.render('admin', { error: errPhrase, 
-      id_usuario: id_usuario ?? '',
-      id_restaurante: id_restaurante ?? '',
+    res.render('admin', { error: errPhrase, users, restaurants, plates, orders,
+      id_usuario: Number(id_usuario) ?? '',
+      id_restaurante: Number(id_restaurante) ?? '',
       direccion: direccion ?? '', 
       telefono: telefono ?? '', 
-      precio: precio ?? '', 
+      precio: parseFloat(precio) ?? 0.00, 
       estado: estado ?? '', 
       plato: plato ?? '', 
       nombre_repartidor: nombre_repartidor ?? '', 
@@ -1110,10 +1129,12 @@ app.post('/admin/add-order', async (req, res) => {
 
   // Insertar los datos en la tabla de pedido
   try {
+    // APENAS SE USA, PERO NO SE VA A USAR
+    /*
     // check if order already exists
     const existingOrder = await prisma.pedido.findFirst({ where: { id } });
     if (existingOrder) {
-      res.render('admin', { error: 'Ese pedido ya existe',
+      res.render('admin', { error: 'Ese pedido ya existe', users, restaurants, plates, orders,
         id_usuario: id_usuario ?? '',
         id_restaurante: id_restaurante ?? '',
         direccion: direccion ?? '', 
@@ -1125,20 +1146,23 @@ app.post('/admin/add-order', async (req, res) => {
       });
       return;
     }
+    */
 
     // create new order
     const newPlate = await prisma.pedido.create({
       data: {
-        id_usuario: id_usuario,
-        id_restaurante: id_restaurante,
+        id_usuario: Number(id_usuario),
+        id_restaurante: Number(id_restaurante),
         direccion: direccion, 
         telefono: telefono, 
-        precio: precio, 
+        precio: parseFloat(precio).toString() ?? (0.00).toString(),  
         estado: estado, 
         plato: plato, 
         nombre_repartidor: nombre_repartidor, 
       },
     });
+
+    res.redirect('/admin');
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -1149,16 +1173,15 @@ app.post('/admin/add-order', async (req, res) => {
 app.post('/admin/edit-order', async function(req, res) {
   const users = await prisma.usuario.findMany(); // para mostrar los usuarios que hay
   const restaurants = await prisma.restaurante.findMany(); // para mostrar los restaurantes que hay
-  // Obtener el ID del plato a editar
+  const plates = await prisma.plato.findMany();
+  // Obtener el ID del pedido a editar
   const id = req.body.id;
   try {
-    // Obtener los datos del plato con el ID especificado
-    const order = await prisma.plato.findUnique({
-      where: {
-        id: Number(id),
-      },
+    // Obtener los datos del pedido con el ID especificado
+    const order = await prisma.pedido.findUnique({
+      where: { id: Number(id), },
     });
-    res.render('edit-order', { order, id, users, restaurants });
+    res.render('edit-order', { order, id, users, restaurants, plates });
   } catch (error) {
     console.error('EDIT ORDER ERROR: ', error);
     res.render('error');
@@ -1168,19 +1191,18 @@ app.post('/admin/edit-order', async function(req, res) {
 // Actualizar pedido
 app.post('/admin/update-order', async function(req, res) {
   // Obtener los datos del formulario
-  const { id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
+  const { id, id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
 
   try {
     // Actualizar los datos del pedido en la base de datos
     const updatedOrder = await prisma.pedido.update({
       where: { id: parseInt(id) }, // Asegúrate de convertir el id a un número entero
       data: {
-        
-        id_usuario: { set: parseInt(id_usuario) },
-        id_restaurante: { set: parseInt(id_restaurante) },
+        id_usuario: parseInt(id_usuario),
+        id_restaurante: parseInt(id_restaurante),
         direccion: direccion ?? '', 
         telefono: telefono ?? '', 
-        precio: { set: parseFloat(precio) }, // Asegúrate de convertir precio a un número flotante
+        precio: parseFloat(precio).toString() ?? (0.00).toString(), // Asegúrate de convertir precio a un número flotante
         estado: estado ?? '', 
         plato: plato ?? '', 
         nombre_repartidor: nombre_repartidor ?? '',
@@ -1203,9 +1225,7 @@ app.post('/admin/delete-order', async function(req, res) {
   try {
     // Eliminar el pedido de la tabla de pedido
     await prisma.pedido.delete({
-      where: {
-        id: Number(id)
-      }
+      where: { id: Number(id) }
     });
 
     res.redirect('/admin');

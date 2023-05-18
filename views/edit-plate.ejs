@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Editar plato</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
@@ -22,7 +23,7 @@
 				<output><%= plate.precio %></output>
 		
 		<label for="imagen">Imagen:</label>
-		<input type="file" name="imagen" value="<%= plate.imagen %>" accept="image/png, image/gif, image/jpeg" required>
+		<input type="file" name="imagen" value="<%= plate.imagen %>" accept="image/png, image/gif, image/jpeg">
 		Imagen actual: <%= plate.imagen %>
 		<img src="../images/plate/<%= plate.imagen %>" alt="<%= plate.imagen %>" width="50%" /> 
 
@@ -37,22 +38,24 @@
 		<label for="id_restaurante">Restaurante:</label>
 		<select name="id_restaurante" required>
 			<% restaurants.forEach(function(restaurant) { %>
-				<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
+				<% if (restaurant.id === plate.id_restaurante) { %>
+					<option value="<%= restaurant.id %>" selected><%= restaurant.nombre %></option>
+				<% } else { %>
+					<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
+				<% } %>
 			<% }); %>
 		</select>
 		<button type="submit">Guardar cambios</button>
+		<br/>
+		<a style="background-color: #0485cf;
+			display: inline-block;
+			padding: 3%;
+			font-size: 16px;
+			text-align: center;
+			text-decoration: none;
+			color: #fff;" href="/admin">
+		  Volver
+		</a>
 	</form>
-
-    <div class="button_bottom">
-      <a style="background-color: #0485cf;
-        display: inline-block;
-        padding: 2.35% 50%;
-        font-size: 16px;
-        text-align: center;
-        text-decoration: none;
-        color: #fff;" href="/admin">
-        Volver
-      </a>
-    </div>
 </body>
 </html>
