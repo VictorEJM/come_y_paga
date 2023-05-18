@@ -3,6 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const multer = require('multer');
 var session = require('express-session');
 
@@ -11,7 +13,25 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 // Create an instance of the Express app
 const app = express();
-const uploadImage = multer({ dest: 'public/images/' });
+const storageRestaurant = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/images/restaurant');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Utiliza el nombre original del archivo
+  }
+});
+const storagePlate = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/images/plate');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Utiliza el nombre original del archivo
+  }
+});
+
+const uploadImageRestaurant = multer({ storage: storageRestaurant });
+const uploadImagePlate = multer({ storage: storagePlate });
 // create a MySQL connection pool
 const pool = mysql.createPool({
   host: 'localhost',
@@ -694,8 +714,14 @@ app.post('/admin/delete-user', async function(req, res) {
 /* RESTAURANTE */
 /***************/
 // Agregar restaurante
-app.post('/admin/add-restaurant', async (req, res) => {
+app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (req, res) => {
   const connection = await pool.getConnection();
+  const users = await prisma.usuario.findMany();
+  const restaurants = await prisma.restaurante.findMany();
+  const plates = await prisma.plato.findMany();
+  const orders = await prisma.pedido.findMany();
+
+  const logoPath = req.file ? req.file.path : ''; // Obtén la ruta del archivo si existe, de lo contrario, asigna una cadena vacía
   // Obtener los datos del formulario
   const { nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas } = req.body;
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
@@ -728,11 +754,11 @@ app.post('/admin/add-restaurant', async (req, res) => {
     errPhrase += 'La tipologia no puede ser menor de 2 carácteres, ni mayor de 50 carácteres, ni puede estar vacío.\n';
     hasError = true;
   }
-  if (logo.trim().length < 1) {
+  if (logoPath.length < 1) {
     errPhrase += 'El logo no puede estar vacío, pon la imagen.\n';
     hasError = true;
   }
-  if (estrellas < 1 || estrellas > 5) {
+  if (isNaN(parseInt(estrellas)) || parseInt(estrellas) < 1 || parseInt(estrellas) > 5) {
     errPhrase += 'No puede tener menos de 1 estrella, ni más de 5.\n';
     hasError = true;
   }
@@ -740,14 +766,14 @@ app.post('/admin/add-restaurant', async (req, res) => {
   if (hasError)
   {
     //document.getElementById("error").innerHTML = "";
-    res.render('admin', { error: errPhrase, 
+    res.render('admin', { error: errPhrase, users, restaurants, plates, orders,
       nombre: nombre ?? '', 
       tipo_comida: tipo_comida ?? '', 
       direccion: direccion ?? '', 
       telefono: telefono ?? '', 
       email: email ?? '', 
       tipologia: tipologia ?? '', 
-      logo: logo ?? '',
+      logo: logoPath ?? '',
       estrellas: estrellas ?? 1,
     });
     return;
@@ -756,17 +782,17 @@ app.post('/admin/add-restaurant', async (req, res) => {
   // Insertar los datos en la tabla de restaurante
   try {
     // check if restaurant already exists
-    const existingRestaurant = await prisma.restaurante.findUnique({ where: { nombre } });
+    const existingRestaurant = await prisma.restaurante.findFirst({ where: { nombre } });
     if (existingRestaurant) {
-      res.render('admin', { error: 'Ese restaurante ya existe',
+      res.render('admin', { error: 'Ese restaurante ya existe', users, restaurants, plates, orders,
         nombre: nombre ?? '', 
         tipo_comida: tipo_comida ?? '', 
         direccion: direccion ?? '', 
         telefono: telefono ?? '', 
         email: email ?? '', 
         tipologia: tipologia ?? '', 
-        logo: logo ?? '',
-        estrellas: estrellas ?? 1,
+        logo: logoPath ?? '',
+        estrellas: parseInt(estrellas) ?? 1,
       });
       return;
     }
@@ -780,10 +806,12 @@ app.post('/admin/add-restaurant', async (req, res) => {
         telefono: telefono,
         email: email,
         tipologia: tipologia,
-        logo: logo,
-        estrellas: estrellas,
+        // TOFIX: HACER QUE SALGA SOLO EL NOMBRE DEL ARCHIVO
+        logo: req.file.filename, // Utiliza el nombre del archivo (logo)
+        estrellas: parseInt(estrellas),
       },
     });
+    res.redirect('admin');
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -809,7 +837,8 @@ app.post('/admin/edit-restaurant', async function(req, res) {
 });
 
 // Actualizar restaurante
-app.post('/admin/update-restaurant', async function(req, res) {
+app.post('/admin/update-restaurant', uploadImageRestaurant.single('logo'), async function(req, res) {
+  const logoPath = req.file ? req.file.path : ''; // Obtén la ruta del archivo si existe, de lo contrario, asigna una cadena vacía
   // Obtener los datos del formulario
   const { id, nombre, tipo_comida, direccion, telefono, 
     email, tipologia, logo, estrellas } = req.body;
@@ -825,8 +854,8 @@ app.post('/admin/update-restaurant', async function(req, res) {
         telefono: telefono ?? '',
         email: email ?? '',
         tipologia: tipologia ?? '',
-        logo: logo ?? '',
-        estrellas: { set: parseInt(estrellas) } // Asegúrate de convertir estrellas a un número entero
+        logo: logoPath, // Utiliza la ruta del archivo
+        estrellas: parseInt(estrellas) // Asegúrate de convertir estrellas a un número entero
       }
     });
 
@@ -844,6 +873,22 @@ app.post('/admin/delete-restaurant', async function(req, res) {
   const id = req.body.id;
 
   try {
+    // Obtener el restaurante a eliminar para obtener el nombre del archivo de imagen
+    const restaurantToDelete = await prisma.restaurante.findUnique({
+      where: {
+        id: Number(id)
+      }
+    });
+
+    // Verificar si el restaurante existe y si tiene un archivo de imagen asociado
+    if (restaurantToDelete && restaurantToDelete.logo) {
+      // Construir la ruta completa del archivo de imagen
+      const imagePath = path.join(__dirname, 'public', 'images', 'restaurant', restaurantToDelete.logo);
+
+      // Eliminar el archivo de imagen del sistema de archivos
+      fs.unlinkSync(imagePath);
+    }
+
     // Eliminar el restaurante de la tabla de restaurante
     await prisma.restaurante.delete({
       where: {
@@ -944,10 +989,9 @@ app.post('/admin/edit-plate', async function(req, res) {
   try {
     // Obtener los datos del plato con el ID especificado
     const plate = await prisma.plato.findUnique({
-      where: {
-        id: Number(id),
-      },
+      where: { id: Number(id) }
     });
+
     res.render('edit-plate', { plate, id, restaurants });
   } catch (error) {
     console.error('EDIT PLATE ERROR: ', error);
@@ -987,11 +1031,23 @@ app.post('/admin/delete-plate', async function(req, res) {
   const id = req.body.id;
 
   try {
+    // Obtener el plato a eliminar para obtener el nombre del archivo de imagen
+    const plateToDelete = await prisma.plato.findUnique({
+      where: { id: Number(id) }
+    });
+
+    // Verificar si el plato existe y si tiene un archivo de imagen asociado
+    if (plateToDelete && plateToDelete.logo) {
+      // Construir la ruta completa del archivo de imagen
+      const imagePath = path.join(__dirname, 'public', 'images', 'plate', plateToDelete.imagen);
+
+      // Eliminar el archivo de imagen del sistema de archivos
+      fs.unlinkSync(imagePath);
+    }
+
     // Eliminar el plato de la tabla de plato
     await prisma.plato.delete({
-      where: {
-        id: Number(id)
-      }
+      where: { id: Number(id) }
     });
 
     res.redirect('/admin');

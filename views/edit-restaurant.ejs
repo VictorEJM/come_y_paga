@@ -8,7 +8,8 @@
 <body>
 	<h1>Editar restaurante</h1>
 
-	<form class="formRellenar" method="POST" action="/admin/update-restaurant">
+	<form class="formRellenar" method="POST" enctype="multipart/form-data"
+	 action="/admin/update-restaurant">
 		<input type="hidden" name="id" value="<%= restaurant.id %>">
 
 		<label for="nombre">Nombre:</label>

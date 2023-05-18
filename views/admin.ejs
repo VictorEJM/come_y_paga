@@ -239,7 +239,7 @@
 									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
 								</button>
 							</form>
-							<form method="POST" action="/admin/delete-user">
+							<form method="POST" action="/admin/delete-user" onsubmit="return confirm('¿Estás seguro?')">
 								<input type="hidden" name="id" value="<%= user.id %>">
 								<button type="submit" style="background-color:#ff000000;">
 									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />
@@ -268,7 +268,8 @@
 		</button>
 
 		<!-- Formulario para agregar restaurantes -->
-		<form id="form-add-restaurant" method="POST" action="/admin/add-restaurant" style="display:none;">
+		<form id="form-add-restaurant" method="POST" enctype="multipart/form-data" 
+			action="/admin/add-restaurant" style="display:none;">
 			<label for="nombre">nombre:</label>
 				<input type="text" name="nombre" required>
 			<label for="tipo_comida">tipo de comida:</label>
@@ -332,7 +333,7 @@
 									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
 								</button>
 							</form>
-							<form method="POST" action="/admin/delete-restaurant">
+							<form method="POST" action="/admin/delete-restaurant" onsubmit="return confirm('¿Estás seguro?')">
 								<input type="hidden" name="id" value="<%= restaurant.id %>">
 								<button type="submit" style="background-color:#ff000000;">
 									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />
@@ -361,7 +362,8 @@
 		</button>
 
 		<!-- Formulario para agregar platos -->
-		<form id="form-add-plate" method="POST" action="/admin/add-plate" style="display:none;">
+		<form id="form-add-plate" method="POST" enctype="multipart/form-data" 
+			action="/admin/add-plate" style="display:none;">
 			<label for="nombre">nombre:</label>
 				<input type="text" name="nombre" required>
 			<label for="precio">precio:</label>
@@ -423,7 +425,7 @@
 									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
 								</button>
 							</form>
-							<form method="POST" action="/admin/delete-plate">
+							<form method="POST" action="/admin/delete-plate" onsubmit="return confirm('¿Estás seguro?')">
 								<input type="hidden" name="id" value="<%= plate.id %>">
 								<button type="submit" style="background-color:#ff000000;">
 									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />
@@ -539,7 +541,7 @@
 									<img src="images/admin/update.png" alt="editar" style="width: 50px;" />
 								</button>
 							</form>
-							<form method="POST" action="/admin/delete-order">
+							<form method="POST" action="/admin/delete-order" onsubmit="return confirm('¿Estás seguro?')">
 								<input type="hidden" name="id" value="<%= order.id %>">
 								<button type="submit" style="background-color:#ff000000;">
 									<img src="images/admin/delete.png" alt="eliminar" style="width: 50px;" />

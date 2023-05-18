@@ -8,7 +8,8 @@
 <body>
 	<h1>Editar plato</h1>
 
-	<form class="formRellenar" method="POST" action="/admin/update-plate">
+	<form class="formRellenar" method="POST" enctype="multipart/form-data"
+	 action="/admin/update-plate">
 		<input type="hidden" name="id" value="<%= plate.id %>">
 
 		<label for="nombre">Nombre:</label>
