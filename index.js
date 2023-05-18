@@ -633,9 +633,7 @@ app.post('/admin/edit-user', async function(req, res) {
   try {
     // Obtener los datos del usuario con el ID especificado
     const user = await prisma.usuario.findUnique({
-      where: {
-        id: Number(id),
-      },
+      where: { id: Number(id), },
     });
     
     user.fecha_nacimiento = user.fecha_nacimiento.getFullYear()
@@ -697,9 +695,7 @@ app.post('/admin/delete-user', async function(req, res) {
   try {
     // Eliminar el usuario de la tabla de usuario
     await prisma.usuario.delete({
-      where: {
-        id: Number(id)
-      }
+      where: { id: Number(id) }
     });
 
     res.redirect('/admin');
@@ -721,7 +717,7 @@ app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (r
   const plates = await prisma.plato.findMany();
   const orders = await prisma.pedido.findMany();
 
-  const logoPath = req.file ? req.file.path : ''; // Obtén la ruta del archivo si existe, de lo contrario, asigna una cadena vacía
+  const logoPath = req.file ? req.file.filename : ''; // Obtén el nombre del archivo si existe, de lo contrario, asigna una cadena vacía
   // Obtener los datos del formulario
   const { nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas } = req.body;
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
@@ -806,12 +802,11 @@ app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (r
         telefono: telefono,
         email: email,
         tipologia: tipologia,
-        // TOFIX: HACER QUE SALGA SOLO EL NOMBRE DEL ARCHIVO
-        logo: req.file.filename, // Utiliza el nombre del archivo (logo)
+        logo: logoPath, // Utiliza el nombre del archivo (logo)
         estrellas: parseInt(estrellas),
       },
     });
-    res.redirect('admin');
+    res.redirect('/admin');
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -825,9 +820,7 @@ app.post('/admin/edit-restaurant', async function(req, res) {
   try {
     // Obtener los datos del restaurante con el ID especificado
     const restaurant = await prisma.restaurante.findUnique({
-      where: {
-        id: Number(id),
-      },
+      where: { id: Number(id), },
     });
     res.render('edit-restaurant', { restaurant, id });
   } catch (error) {
@@ -838,10 +831,9 @@ app.post('/admin/edit-restaurant', async function(req, res) {
 
 // Actualizar restaurante
 app.post('/admin/update-restaurant', uploadImageRestaurant.single('logo'), async function(req, res) {
-  const logoPath = req.file ? req.file.path : ''; // Obtén la ruta del archivo si existe, de lo contrario, asigna una cadena vacía
+  const logoPath = req.file ? req.file.filename : req.body.logo; // Obtén el nombre del archivo si existe, de lo contrario, utiliza el valor anterior de restaurant.logo
   // Obtener los datos del formulario
-  const { id, nombre, tipo_comida, direccion, telefono, 
-    email, tipologia, logo, estrellas } = req.body;
+  const { id, nombre, tipo_comida, direccion, telefono, email, tipologia, estrellas } = req.body;
 
   try {
     // Actualizar los datos del restaurante en la base de datos
@@ -854,7 +846,7 @@ app.post('/admin/update-restaurant', uploadImageRestaurant.single('logo'), async
         telefono: telefono ?? '',
         email: email ?? '',
         tipologia: tipologia ?? '',
-        logo: logoPath, // Utiliza la ruta del archivo
+        logo: logoPath, // Utiliza el nombre del archivo
         estrellas: parseInt(estrellas) // Asegúrate de convertir estrellas a un número entero
       }
     });
@@ -875,9 +867,7 @@ app.post('/admin/delete-restaurant', async function(req, res) {
   try {
     // Obtener el restaurante a eliminar para obtener el nombre del archivo de imagen
     const restaurantToDelete = await prisma.restaurante.findUnique({
-      where: {
-        id: Number(id)
-      }
+      where: { id: Number(id) }
     });
 
     // Verificar si el restaurante existe y si tiene un archivo de imagen asociado
@@ -891,9 +881,7 @@ app.post('/admin/delete-restaurant', async function(req, res) {
 
     // Eliminar el restaurante de la tabla de restaurante
     await prisma.restaurante.delete({
-      where: {
-        id: Number(id)
-      }
+      where: { id: Number(id) }
     });
 
     res.redirect('/admin');
