@@ -13,6 +13,15 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 // Create an instance of the Express app
 const app = express();
+// Set HTTPS
+const https = require('https');
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
+const server = https.createServer(options, app);
+
+
 const storageRestaurant = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'public/images/restaurant');
@@ -1236,6 +1245,6 @@ app.post('/admin/delete-order', async function(req, res) {
 });
 
 // Start the server
-app.listen(4000, () => {
+server.listen(4000, () => {
   console.log('Server is running on port 4000');
 });

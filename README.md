@@ -46,6 +46,13 @@ En Powershell, ejecutar algo así desde el directorio donde tengas el repositori
 cd C:\msys64\home\alumne-DAM\CIDE_come_y_paga\; npm start
 ```
 
+Y abrirlo con https://localhost:4000, cuando se ha abierto, hay que aceptar el procedimiento dónde impide que el HTTPS no es seguro, igualmente iremos aunque no esté a salvo (no hay problemas de seguridad externos, siendo un proyecto de pruebas).
+
+La llave para certificado HTTPS se generó con el siguiente comando en Linux:
+```sh
+openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 365
+```
+
 ### Erratas en los mockups:
 
 - mensajes del repartidor, función: incidencias

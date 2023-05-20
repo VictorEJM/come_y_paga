@@ -4,24 +4,106 @@
     <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>Platos <%= restaurant.nombre %></title>
     <link rel="stylesheet" href="/styles/style.css">
+    <style>
+      @media only screen and (min-width: 400px) {
+        .divPlatoButton[style*="max-width: 400px"] {
+          width: 82%;
+        }
+      }
+      .button_plate {
+        margin-bottom: 10px;
+        box-shadow: 2px 2px 4px #00000040;
+      }
+    </style>
+    <script>
+      function tabFunctionResponsiveEnable() {
+        var x = document.getElementById("TopNavHome");
+        if (x.className === "topnavhome") {
+          x.className += " responsive";
+        } else {
+          x.className = "topnavhome";
+        }
+      }
+    </script>
   </head>
   <body>
     <h1>PLATOS DEL RESTAURANTE <br/><%= restaurant.nombre %></h1>
-    <div class="user-info">
-      <span>Usuario: <%= user %></span>
+    
+    <div class="topnavhome" id="TopNavHome">
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      
+      <a class="active">
+        <img src="/images/user.png" alt="user" width="15" />
+        <%= user %>
+      </a>
+      <a class="active" style="background-color:#009c3c;" href="pedidos/">
+        <img src="/images/order.png" alt="order" width="15" />
+         Pedidos
+      </a>
+      <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
+        <i class="fa fa-bars"></i>
+      </a>
+      
       <form method="POST" action="/logout">
-        <button type="submit">Cerrar sesión</button>
+        <button class="btn_button_bottom" type="submit" style="
+          display: inline-block;
+          padding: 2.35%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;">
+          <img src="/images/logout.png" alt="logout" width="10%" />
+          Cerrar sesión
+        </button>
       </form>
     </div>
-    <% if (plates.length > 0) { %>
-      <ul>
+    <div class="divPlatoButton" style="padding: 8px 16px; text-align: center; 
+      display: flex; flex-direction: column; 
+      justify-content: space-between; 
+      width: 82%; max-width: 400px;">
+      <% if (plates.length > 0) { %>
         <% plates.forEach(plate => { %>
-          <li><%= plate.nombre %> - $<%= plate.precio %></li>
+          <!-- TODO: CAMBIAR A REDIRECCIONAR A PROCESAR EL PEDIDO Y DECIR LA CANTIDAD QUE VA A COMPRAR -->
+          <a href="/plates/<%= plate.id %>" class="button_plate"
+            style="display: flex;
+            padding: 8px 16px;
+            width: 100%;
+            background: #fff9a8;
+            background: linear-gradient(0deg, #ffdba8c9 0%, #ffb52c 100%); 
+            color: #000000;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;">
+            <div style="flex: 1; display: flex;">
+              <div style="width: 50%; position: relative;">
+                <img src="/images/plate/<%= plate.imagen %>" alt="<%= plate.imagen %>" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%;">
+              </div>
+              <div style="width: 50%; display: flex; flex-direction: column; padding-left: 8px; position: relative;">
+                <div><b><%= plate.nombre %></b></div>
+                <div><%= plate.tipo %></div>
+                <div>
+                  <p>
+                    <%= plate.precio %>
+                    <% if (plate.precio > 10) { %> 
+                      €€
+                    <% } else if (plate.precio > 20) { %>
+                      €€€
+                    <% } else { %>
+                      €
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </a>
         <% }); %>
-      </ul>
-    <% } else { %>
-      <p>No plates found.</p>
-    <% } %>
+      <% } else { %>
+        <p>No se ha encontrado ningún plato.</p>
+        <br/>
+      <% } %>
+    </div>
+
     <div class="button_bottom">
       <a style="background-color: #0485cf;
         display: inline-block;

@@ -33,11 +33,11 @@
       <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
       
       <a class="active">
-        <img src="images/user.png" alt="user" width="15" />
+        <img src="/images/user.png" alt="user" width="15" />
         <%= user %>
       </a>
       <a class="active" style="background-color:#009c3c;" href="pedidos/">
-        <img src="images/order.png" alt="order" width="15" />
+        <img src="/images/order.png" alt="order" width="15" />
          Pedidos
       </a>
       <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
@@ -51,7 +51,7 @@
           font-size: 16px;
           text-align: center;
           text-decoration: none;">
-          <img src="images/logout.png" alt="logout" width="10%" />
+          <img src="/images/logout.png" alt="logout" width="10%" />
           Cerrar sesión
         </button>
       </form>
@@ -77,7 +77,7 @@
             cursor: pointer;">
             <div style="flex: 1; display: flex;">
               <div style="width: 50%; position: relative;">
-                <img src="images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%;">
+                <img src="/images/restaurant/<%= restaurant.logo %>" alt="<%= restaurant.logo %>" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%;">
               </div>
               <div style="width: 50%; display: flex; flex-direction: column; padding-left: 8px; position: relative;">
                 <div><b><%= restaurant.nombre %></b></div>
@@ -89,10 +89,10 @@
                   <% for (let i = 1; i <= 5 + 1; i++) { %>
                     <% const starNum = i - 1 %>
                     <% if (starNum < restaurant.estrellas) { %>
-                      <img src="images/star.png" alt="star" width="20px" />
+                      <img src="/images/star.png" alt="star" width="20px" />
                     <% } %>
                     <% if (starNum > restaurant.estrellas) { %>
-                      <img src="images/star_empty.png" alt="no_star" width="20px" />
+                      <img src="/images/star_empty.png" alt="no_star" width="20px" />
                     <% } %>
                   <% } %>
                 </div>
