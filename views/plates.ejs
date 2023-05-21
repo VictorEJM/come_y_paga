@@ -36,7 +36,7 @@
         <img src="/images/user.png" alt="user" width="15" />
         <%= user %>
       </a>
-      <a class="active" style="background-color:#009c3c;" href="pedidos/">
+      <a class="active" style="background-color:#009c3c;" href="/pedidos">
         <img src="/images/order.png" alt="order" width="15" />
          Pedidos
       </a>
@@ -55,15 +55,26 @@
           Cerrar sesión
         </button>
       </form>
+      <div class="button_bottom">
+        <a style="background-color: #0485cf;
+          display: inline-block;
+          padding: 2.35% 50%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;
+          color: #fff;" href="/restaurants">
+          Volver
+        </a>
+      </div>
     </div>
+
     <div class="divPlatoButton" style="padding: 8px 16px; text-align: center; 
       display: flex; flex-direction: column; 
       justify-content: space-between; 
       width: 82%; max-width: 400px;">
       <% if (plates.length > 0) { %>
         <% plates.forEach(plate => { %>
-          <!-- TODO: CAMBIAR A REDIRECCIONAR A PROCESAR EL PEDIDO Y DECIR LA CANTIDAD QUE VA A COMPRAR -->
-          <a href="/plates/<%= plate.id %>" class="button_plate"
+          <a href="/plates/<%= plate.id %>/process" class="button_plate"
             style="display: flex;
             padding: 8px 16px;
             width: 100%;
@@ -104,16 +115,5 @@
       <% } %>
     </div>
 
-    <div class="button_bottom">
-      <a style="background-color: #0485cf;
-        display: inline-block;
-        padding: 2.35% 50%;
-        font-size: 16px;
-        text-align: center;
-        text-decoration: none;
-        color: #fff;" href="/restaurants">
-        Volver
-      </a>
-    </div>
   </body>
 </html>

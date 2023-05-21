@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>Procesar pedido</title>
+    <script>
+    function decreaseQuantity() {
+        const quantityInput = document.getElementById('cantidad');
+        let quantity = parseInt(quantityInput.value);
+        if (quantity > 1) {
+            quantity--;
+            quantityInput.value = quantity;
+            updateTotalPrice(quantity);
+        }
+    }
+    function increaseQuantity() {
+        const quantityInput = document.getElementById('cantidad');
+        let quantity = parseInt(quantityInput.value);
+        quantity++;
+        quantityInput.value = quantity;
+        updateTotalPrice(quantity);
+    }
+
+    function updateTotalPrice(quantity) {
+        const totalParagraph = document.getElementById('total');
+        const platePrice = parseFloat('<%= plate.precio %>'); // Obtener el precio del plato desde la variable plate
+        const totalPrice = (platePrice * quantity).toFixed(2);
+        totalParagraph.innerText = totalPrice + ' €';
+    }
+
+    </script>
+    <link rel="stylesheet" href="/styles/style.css">
+    <style>
+      @media only screen and (min-width: 400px) {
+        .divPlatoButton[style*="max-width: 400px"] {
+          width: 82%;
+        }
+      }
+      .button_plate {
+        margin-bottom: 10px;
+        box-shadow: 2px 2px 4px #00000040;
+      }
+    </style>
+</head>
+<body>
+  <h1>Procesar Pedido - <%= plate.nombre %></h1>
+  <div class="topnavhome" id="TopNavHome">
+    <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+    
+    <a class="active">
+      <img src="/images/user.png" alt="user" width="15" />
+      <%= user.nombre_usuario %>
+    </a>
+    <a class="active" style="background-color:#009c3c;" href="pedidos/">
+      <img src="/images/order.png" alt="order" width="15" />
+       Pedidos
+    </a>
+    <a href="javascript:void(0);" class="icon" onclick="tabFunctionResponsiveEnable()">
+      <i class="fa fa-bars"></i>
+    </a>
+    
+    <form method="POST" action="/logout">
+      <button class="btn_button_bottom" type="submit" style="
+        display: inline-block;
+        padding: 2.35%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;">
+        <img src="/images/logout.png" alt="logout" width="10%" />
+        Cerrar sesión
+      </button>
+    </form>
+    <div class="button_bottom">
+      <a style="background-color: #0485cf;
+        display: inline-block;
+        padding: 2.35% 50%;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #fff;" href="/plates/<%= plate.id %>">
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <div style="width: 50%; position: relative;">
+    <img src="/images/plate/<%= plate.imagen %>" alt="<%= plate.imagen %>" style="left: 50%; top: 0; height: 100%; width: 100%;">
+  </div>
+  
+  <form action="/plates/<%= plate.id %>/confirm" method="POST">
+    <label for="direccion">Dirección:</label>
+    <input type="text" id="direccion" name="direccion" value="<%= user.direccion %>">
+    
+    <!--
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="<%= user.email %>">
+    -->
+    
+    <label for="telefono">Teléfono:</label>
+    <input type="tel" id="telefono" name="telefono" value="<%= user.telefono %>">
+    
+    <label for="cantidad">Cantidad:</label>
+    <button type="button" onclick="decreaseQuantity()">-</button>
+    <input type="number" id="cantidad" name="cantidad" value="1" min="1">
+    <button type="button" onclick="increaseQuantity()">+</button>
+    
+    <label for="precio">Total:</label>
+    <!-- <input type="text" id="precio" name="precio" value="<%= plate.precio %>" readonly> -->
+    <p id="total"><%= plate.precio %> €</p>
+    
+    <button type="submit">Completar Pedido</button>
+  </form>
+  
+</body>
+</html>

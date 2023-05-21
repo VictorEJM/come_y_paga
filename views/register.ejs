@@ -7,6 +7,22 @@
   </head>
   <body>
     <h1>Rellene los datos para registrar</h1>
+    <div class="topnavhome" id="TopNavHome">
+      <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
+      
+      <div class="button_bottom">
+        <a style="background-color: #0485cf;
+          display: inline-block;
+          padding: 2.35% 50%;
+          font-size: 16px;
+          text-align: center;
+          text-decoration: none;
+          color: #fff;" href="/login">
+          Volver
+        </a>
+      </div>
+    </div>
+    
     <form class="formRellenar" action="/register" method="post">
       <label for="nombre">Nombre:</label>
       <input type="text" id="nombre" name="nombre" value="<%= nombre %>" required>
@@ -32,15 +48,6 @@
       <% } %>
       <button type="submit">Registrar</button>
       <br/>
-      <a style="background-color: #0485cf;
-        display: inline-block;
-        padding: 3%;
-        font-size: 16px;
-        text-align: center;
-        text-decoration: none;
-        color: #fff;" href="/login">
-        Volver
-      </a>
     </form>
   </body>
 </html>

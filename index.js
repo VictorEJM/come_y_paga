@@ -360,66 +360,84 @@ app.post('/register', async (req, res) => {
 // https://www.w3schools.com/howto/howto_css_hide_scrollbars.asp
 
 
-// TODO: HACER QUE SEA REDIRIGIDO POR PARTE DE UN PLATO Y SE PROCESE
-// LA COMPRA CON LA DIRECCIÓN Y DATOS A PROCESAR, PONER DIRECCIÓN POR DEFECTO
-// DEL USUARIO, DESPUÉS DE PROCESAR EL REPARTIDOR OBTENDRÁ EL PEDIDO DE 
-// TAL USUARIO CON TALES DATOS
-
-
 /************************************/
 /************** PEDIDOS *************/
 /************************************/
-// PEDIDOS
-app.post('/purchase/:id', async (req, res) => {
-  const plateId = parseInt(req.params.id);
-  const deliveryAddress = req.body.deliveryAddress;
-  const newAddress = req.body.newAddress;
-
-  // Validate the form data
-  if (!deliveryAddress && !newAddress) {
-    res.status(400).send('Please select or enter a delivery address.');
-    return;
+// PROCESO DEL PEDIDO
+let currentPlate; // Variable para almacenar el plato actual
+app.get('/plates/:id/process', async (req, res) => {
+  const { id } = req.params;
+  try {
+    currentPlate = await prisma.plato.findUnique({
+      where: {
+        id: Number(id)
+      }
+    });
+    const user = await prisma.usuario.findUnique({
+      where: {
+        nombre_usuario: req.session.user
+      }
+    });
+    res.render('process-order', { plate: currentPlate, user });
+  } catch (error) {
+    console.log(error);
+    res.render('error');
   }
-
-  // Save the purchase details to the database
-  const newOrder = await prisma.pedidos.create({
-    data: {
-      plate: {
-        connect: {
-          id: plateId,
-        },
-      },
-      delivery_address: deliveryAddress || newAddress,
-    },
-  });
-
-  // Redirect to the confirmation page
-  res.redirect(`/confirmation/${plateId}`);
 });
 
-// CONFIRMACIÓN DE TAL PLATO
-app.get('/confirmation/:id', async (req, res) => {
-  const plateId = parseInt(req.params.id);
+// PEDIDO A CONFIRMAR
+app.post('/plates/:id/confirm', async (req, res) => {
+  const { id } = req.params;
+  const { direccion, telefono, cantidad } = req.body;
 
-  // Get the details of the selected plate from the database
-  const plate = await prisma.plate.findUnique({
-    where: {
-      id: plateId,
-    },
-  });
+  try {
+    // para obtener la ID del usuario conectado
+    const user = await prisma.usuario.findUnique({
+      where: {
+        nombre_usuario: req.session.user
+      }
+    });
+    const userId = user.id;
+    console.log("userId: " + userId);
 
-  // Calculate the total price including IVA
-  const price = plate.price;
-  const iva = 0.21;
-  const totalPrice = price * (1 + iva);
+    if (cantidad <= 0) {
+      console.log('El usuario ha intentado introducir una cantidad inválida (cero o menor)');
+      res.render('error');
+      return;
+    }
+    
+    // Guardar el pedido en la base de datos
+    await prisma.pedido.create({
+      data: {
+        id_usuario: parseInt(userId),
+        id_restaurante: parseInt(currentPlate.id_restaurante),
+        direccion: direccion,
+        telefono: telefono,
+        precio: (currentPlate.precio * cantidad).toFixed(2),
+        estado: 'pendiente',
+        plato: currentPlate.nombre,
+        nombre_repartidor: 'POR CONFIRMAR',
+      }
+    });
 
-  // Render the confirmation page with the plate data and total price
-  res.render('confirmation', { plate, totalPrice });
+    // Redireccionar a la página de confirmación de pedido
+    res.redirect('/confirm-order');
+  } catch (error) {
+    console.log(error);
+    res.render('error');
+  }
 });
 
+// PÁGINA DE CONFIRMACIÓN DE PEDIDO
+app.get('/confirm-order', (req, res) => {
+  // Renderizar la página de confirmación de pedido
+  res.render('confirm-order', { title: 'PEDIDO CONFIRMADO' });
+});
+
+// LISTA DE PEDIDOS
 // Manejador para mostrar la lista de pedidos
 app.get('/pedidos', async (req, res) => {
-  
+
   try {
     // para obtener la ID del usuario conectado
     const user = await prisma.usuario.findUnique({
@@ -440,7 +458,7 @@ app.get('/pedidos', async (req, res) => {
         restaurante: true
       }
     });
-    
+
     // Renderiza la plantilla HTML y pasa los datos de los pedidos como contexto
     res.render('pedidos', { user: req.session.user, pedidos });
   } catch (error) {
@@ -500,9 +518,6 @@ app.post('/repartidor/:id/estado', async (req, res) => {
 /*************************************/
 /********** ADMINISTRACIÓN ***********/
 /*************************************/
-// TODO: PROBAR Y HACER ALGUNOS AJUSTES, 
-// SOLO HAY TABLA DE usuario, restaurante, plato. FALTA LA DE pedido
-
 app.get('/admin', async (req, res) => {
   try {
     const users = await prisma.usuario.findMany();
