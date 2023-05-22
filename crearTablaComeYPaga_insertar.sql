@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS pedido (
   direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
   telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
   precio VARCHAR(10) NOT NULL DEFAULT 0.00,
-  estado ENUM('pendiente', 'en_proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
+  estado ENUM('pendiente', 'cancelado', 'en_proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
   cantidad INT UNSIGNED NOT NULL DEFAULT 1,
   plato TEXT NOT NULL,
   nombre_repartidor VARCHAR(50) NOT NULL DEFAULT 'NADIE',

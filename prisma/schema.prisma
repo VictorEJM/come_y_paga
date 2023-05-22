@@ -77,6 +77,7 @@ model Pedido {
 
 enum EstadoPedido {
   pendiente
+  cancelado
   en_proceso
   entregado
   incidencia

@@ -49,6 +49,7 @@
 		<label for="estado">Estado:</label>
 			<select name="estado" required>
 			  <option value="pendiente" <%= order.estado === 'pendiente' ? 'selected' : '' %>>Pendiente</option>
+			  <option value="cancelado" <%= order.estado === 'cancelado' ? 'selected' : '' %>>Cancelado</option>
 			  <option value="en_proceso" <%= order.estado === 'en_proceso' ? 'selected' : '' %>>En proceso</option>
 			  <option value="entregado" <%= order.estado === 'entregado' ? 'selected' : '' %>>Entregado</option>
 			  <option value="incidencia" <%= order.estado === 'incidencia' ? 'selected' : '' %>>Incidencia</option>

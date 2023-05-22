@@ -116,7 +116,15 @@
     
     <label for="precio">Total:</label>
     <!-- <input type="text" id="precio" name="precio" value="<%= plate.precio %>" readonly> -->
-    <p id="total"><%= plate.precio %> €</p>
+    <p id="total">
+        <!-- Si el precio mínimo no es 10, entonces se le cobrará 3€ más -->
+        <% const precio_menorconfirmado = plate.precio + 3; %>
+        <% if (plate.precio < 10.00) { %>
+          <%= precio_menorconfirmado %>
+        <% } else { %> 
+          <%= plate.precio %>
+        <% } %>
+      €</p>
     
     <button type="submit">Completar pedido</button>
   </form>

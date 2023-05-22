@@ -81,6 +81,7 @@
             <td>
               <form method="POST" action="/repartidor/<%= pedido.id %>/estado">
                 <button type="submit" name="estado" value="pendiente"<% if (pedido.estado === 'pendiente') { %> style="background-color: #c75000;" <% } %>>Pendiente</button>
+                <button type="submit" name="estado" value="cancelado"<% if (pedido.estado === 'cancelado') { %> style="background-color: #c75000;" <% } %>>Cancelado</button>
                 <button type="submit" name="estado" value="en_proceso"<% if (pedido.estado === 'en_proceso') { %> style="background-color: #c75000;" <% } %>>En proceso</button>
                 <button type="submit" name="estado" value="entregado"<% if (pedido.estado === 'entregado') { %> style="background-color: #c75000;" <% } %>>Entregado</button>
                 <button type="submit" name="estado" value="incidencia"<% if (pedido.estado === 'incidencia') { %> style="background-color: #c75000;" <% } %>>Incidencia</button>

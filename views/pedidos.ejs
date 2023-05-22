@@ -56,6 +56,7 @@
           <th>Precio</th>
           <th>Dirección</th>
           <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -66,7 +67,10 @@
           <td><%= pedido.precio %>€</td>
           <td><%= pedido.direccion %></td>
           <td <% if (pedido.estado === 'pendiente') { %> 
-            style="background-color: #c75000;" 
+              style="background-color: #c75000;" 
+            <% } %>
+            <% if (pedido.estado === 'cancelado') { %> 
+              style="background-color: #1b84f4;" 
             <% } %>
             <% if (pedido.estado === 'en_proceso') { %> 
               style="background-color: #e2e600;" 
@@ -76,8 +80,38 @@
             <% } %>
             <% if (pedido.estado === 'incidencia') { %> 
               style="background-color: #ff0000;" 
+            <% } %>>
+            <% if (pedido.estado === 'en_proceso') { %>
+              en proceso
+              <% } else { %>
+              <%= pedido.estado %>
             <% } %>
-            ><%= pedido.estado %></td>
+          </td>
+          <td>
+
+            <% if (pedido.estado !== 'entregado' && pedido.estado !== 'en_proceso' && pedido.estado !== 'incidencia') { %>
+              <form action="/orders/<%= pedido.id %>/change_status" method="POST">
+                <input type="hidden" name="estado" value="<%= pedido.estado %>">
+                <button type="submit">
+                  <% if (pedido.estado === 'cancelado') { %>
+                    Deshacer cancelación
+                  <% } else { %>
+                    Cancelar pedido
+                  <% } %>
+                </button>
+              </form>
+            <% } %>
+
+            <% if (pedido.estado === 'cancelado') { %>
+              <form action="/orders/<%= pedido.id %>/delete-order" method="POST">
+                <input type="hidden" name="estado" value="<%= pedido.estado %>">
+                <button type="submit" style="background-color: #ff0000; color: #ffff;">
+                  Eliminar
+                </button>
+              </form>
+            <% } %>
+
+          </td>
         </tr>
         <% }); %>
       </tbody>

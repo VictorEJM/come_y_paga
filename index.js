@@ -405,6 +405,11 @@ app.post('/plates/:id/confirm', async (req, res) => {
       res.render('error');
       return;
     }
+
+    // Si el precio mínimo no es 10, entonces se le cobrará 3€ más
+    const precio_confirmado = (currentPlate.precio < 10) 
+      ? currentPlate.precio + 3
+      : currentPlate.precio;
     
     // Guardar el pedido en la base de datos
     await prisma.pedido.create({
@@ -413,7 +418,7 @@ app.post('/plates/:id/confirm', async (req, res) => {
         id_restaurante: parseInt(currentPlate.id_restaurante),
         direccion: direccion,
         telefono: telefono,
-        precio: (currentPlate.precio * cantidad).toFixed(2),
+        precio: (precio_confirmado * cantidad).toFixed(2),
         estado: 'pendiente',
         cantidad: parseInt(cantidad),
         plato: currentPlate.nombre,
@@ -433,6 +438,57 @@ app.post('/plates/:id/confirm', async (req, res) => {
 app.get('/confirm-order', (req, res) => {
   // Renderizar la página de confirmación de pedido
   res.render('confirm-order', { title: 'PEDIDO CONFIRMADO' });
+});
+
+// CAMBIAR ESTADO DE PEDIDO POR PARTE DEL CLIENTE
+app.post('/orders/:id/change_status', async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+  
+  console.log("id : " + id);
+  console.log("estado : " + estado);
+  
+  try {
+    // Actualiza el estado del pedido en la base de datos
+    const pedidos = await prisma.pedido.update({
+      where: { id: parseInt(id) },
+      data: {
+        estado: (estado === 'cancelado') ? 'pendiente' : 'cancelado'
+      }
+    });
+    
+    // Redirige a la página de nuevo
+    res.redirect('/pedidos');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al actualizar el estado del pedido');
+  }
+});
+
+// ELIMINAR PEDIDO
+app.post('/orders/:id/delete-order', async function(req, res) {
+  // Obtener el ID del pedido a eliminar
+  const { id } = req.params;
+  const { estado } = req.body;
+
+  try {
+    // Comprobar si el estado del pedido es cancelado
+    // const existingOrder = await prisma.pedido.findFirst({ where: { id } });
+    if (estado !== 'cancelado') {
+      console.log("No se puede eliminar un pedido que no está cancelado");
+      return;
+    }
+
+    // Eliminar el pedido de la tabla de pedido
+    await prisma.pedido.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.redirect('/pedidos');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al eliminar el pedido');
+  }
 });
 
 // LISTA DE PEDIDOS
