@@ -525,6 +525,84 @@ app.get('/pedidos', async (req, res) => {
   }
 });
 
+// MOSTRAR TICKET
+app.get('/orders/:id/ticket', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Obtén el pedido de la base de datos
+    const pedido = await prisma.pedido.findUnique({
+      where: { id: parseInt(id) }
+    });
+    // Obtén el usuario de la base de datos
+    const user = await prisma.usuario.findUnique({
+      where: { id: parseInt(pedido.id_usuario) }
+    });
+    // Obtén el restaurante de la base de datos
+    const restaurant = await prisma.restaurante.findUnique({
+      where: { id: parseInt(pedido.id_restaurante) }
+    });
+    // Obtén el plato de la base de datos
+    const plate = await prisma.plato.findFirst({
+      where: { nombre: pedido.plato.toString() }
+    });
+
+    
+    // Genera el ticket en HTML (puedes personalizar esto según tus necesidades)
+    const ticketHTML = `
+      <br/>
+      <style>
+        #ticketcampos {
+          background-color: #ffff;
+        }
+        #ticketimage {
+          display: block;
+          margin: 0 auto;
+        }
+        #tickettable {
+          margin: auto;
+          margin-top: 20px;
+        }
+      </style>
+      <h2 style="text-align:center;">Ticket</h2>
+      <img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="30%" />
+      <table id="tickettable">
+        <tr id="ticketcampos">
+          <td>Nombre y apellidos del cliente:</td>
+          <td>${user.nombre} ${user.apellidos}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Teléfono:</td>
+          <td>${pedido.telefono}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Dirección:</td>
+          <td>${pedido.direccion}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Restaurante:</td>
+          <td>${restaurant.nombre}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Plato pedido:</td>
+          <td>${pedido.cantidad}x ${pedido.plato}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td><b>Total:</b></td>
+          <td><b><em>${pedido.precio}€</em></b></td>
+        </tr>
+      </table>
+      <br/>
+    `;
+    
+    // Envía el ticket como respuesta
+    res.send(ticketHTML);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al obtener el ticket del pedido');
+  }
+});
+
 
 
 /**************************************/

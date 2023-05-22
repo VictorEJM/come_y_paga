@@ -14,7 +14,27 @@
       tr:nth-child(odd) {
         background-color: #b6d8ff;
       }
+      #ticketContainer {
+        background-color: #ffff;
+      }
     </style>
+    <script>
+      function mostrarTicket(pedidoId) {
+        // Realiza una solicitud AJAX para obtener el ticket del pedido con el pedidoId
+        // Puedes usar fetch o cualquier otra biblioteca de tu elección
+        fetch(`/orders/${pedidoId}/ticket`)
+          .then(response => response.text())
+          .then(ticket => {
+            // Muestra el ticket en el contenedor
+            document.getElementById("ticketContainer").innerHTML = ticket;
+            document.getElementById("ticketContainer").style.display = "block";
+          })
+          .catch(error => console.error(error));
+      }
+      function ocultarTicket() {
+        document.getElementById("ticketContainer").style.display = "none";
+      }
+    </script>    
   </head>
   <body>
     <h1>PEDIDOS</h1>
@@ -48,6 +68,9 @@
     </div>
 
     <% if (pedidos.length > 0) { %>
+      <p>PULSE SOBRE UN PEDIDO PARA MOSTRAR EL TICKET <br/>PULSE SOBRE EL TICKET PARA OCULTARLO</p>
+    <div id="ticketContainer" onclick="ocultarTicket()"></div>
+    
     <table>
       <thead>
 				<tr>
@@ -61,7 +84,7 @@
       </thead>
       <tbody>
         <% pedidos.forEach(pedido => { %>
-        <tr>
+        <tr onclick="mostrarTicket('<%= pedido.id %>')">
           <td ><%= pedido.plato %></td>
           <td ><%= pedido.cantidad %></td>
           <td><%= pedido.precio %>€</td>
