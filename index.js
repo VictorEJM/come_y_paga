@@ -400,8 +400,8 @@ app.post('/plates/:id/confirm', async (req, res) => {
     const userId = user.id;
     console.log("userId: " + userId);
 
-    if (cantidad <= 0) {
-      console.log('El usuario ha intentado introducir una cantidad inválida (cero o menor)');
+    if (cantidad < 1 || cantidad > 99) {
+      console.log('El usuario ha intentado introducir una cantidad inválida (cero, menor que cero o mayor que 99)');
       res.render('error');
       return;
     }
@@ -415,6 +415,7 @@ app.post('/plates/:id/confirm', async (req, res) => {
         telefono: telefono,
         precio: (currentPlate.precio * cantidad).toFixed(2),
         estado: 'pendiente',
+        cantidad: parseInt(cantidad),
         plato: currentPlate.nombre,
         nombre_repartidor: 'POR CONFIRMAR',
       }
@@ -456,7 +457,8 @@ app.get('/pedidos', async (req, res) => {
       include: {
         usuario: true,
         restaurante: true
-      }
+      },
+      orderBy: { id: 'desc' }, // ordenar de más nuevo hasta más antiguo
     });
 
     // Renderiza la plantilla HTML y pasa los datos de los pedidos como contexto
@@ -477,7 +479,7 @@ app.get('/repartidor', async (req, res) => {
     const usuarioId = req.session.user.id;
     const pedidos = await prisma.pedido.findMany({
       include: { usuario: true, restaurante: true },
-      orderBy: { id: 'desc' }
+      orderBy: { id: 'desc' } // ordenar de más nuevo hasta más antiguo
     });
     res.render('repartidor', { usuario: req.session.user, pedidos });
   } catch (error) {
@@ -1096,7 +1098,7 @@ app.post('/admin/add-order', async (req, res) => {
   const plates = await prisma.plato.findMany();
   const orders = await prisma.pedido.findMany();
   // Obtener los datos del formulario
-  const { id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
+  const { id_usuario, id_restaurante, direccion, telefono, precio, estado, cantidad, plato, nombre_repartidor } = req.body;
   const direccionRegex = /^\s*(?=.{5,100}$).*$/;
 
   var errPhrase = "";
@@ -1126,6 +1128,10 @@ app.post('/admin/add-order', async (req, res) => {
     errPhrase += 'Por favor, selecciona un estado.\n';
     hasError = true;
   }
+  if (!isNumeric(cantidad.trim()) || cantidad < 1 || cantidad > 100) {
+    errPhrase += 'La cantidad no puede ser menos de 1 ni más de 100.\n';
+    hasError = true;
+  }
   if (plato.trim().length < 3 || plato.trim().length > 50) {
     errPhrase += 'El nombre del plato no puede estar vacío ni tener menos de 3 caráteres ni mayor de 50 carácteres.\n';
     hasError = true;
@@ -1145,6 +1151,7 @@ app.post('/admin/add-order', async (req, res) => {
       telefono: telefono ?? '', 
       precio: parseFloat(precio) ?? 0.00, 
       estado: estado ?? '', 
+      cantidad: parseInt(cantidad) ?? 1,
       plato: plato ?? '', 
       nombre_repartidor: nombre_repartidor ?? '', 
     });
@@ -1165,6 +1172,7 @@ app.post('/admin/add-order', async (req, res) => {
         telefono: telefono ?? '', 
         precio: precio ?? '', 
         estado: estado ?? '', 
+        cantidad: cantidad ?? 1,
         plato: plato ?? '', 
         nombre_repartidor: nombre_repartidor ?? '', 
       });
@@ -1181,6 +1189,7 @@ app.post('/admin/add-order', async (req, res) => {
         telefono: telefono, 
         precio: parseFloat(precio).toString() ?? (0.00).toString(),  
         estado: estado, 
+        cantidad: parseInt(cantidad),
         plato: plato, 
         nombre_repartidor: nombre_repartidor, 
       },
@@ -1228,6 +1237,7 @@ app.post('/admin/update-order', async function(req, res) {
         telefono: telefono ?? '', 
         precio: parseFloat(precio).toString() ?? (0.00).toString(), // Asegúrate de convertir precio a un número flotante
         estado: estado ?? '', 
+        cantidad: parseInt(cantidad) ?? 1,
         plato: plato ?? '', 
         nombre_repartidor: nombre_repartidor ?? '',
       }

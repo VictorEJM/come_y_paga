@@ -5,7 +5,6 @@
     <title>Pedidos</title>
     <link rel="stylesheet" href="/styles/style.css">
     <style>
-      
       th {
         background-color: rgb(245, 253, 129);
       }
@@ -46,17 +45,6 @@
           Cerrar sesión
         </button>
       </form>
-      <div class="button_bottom">
-        <a style="background-color: #0485cf;
-          display: inline-block;
-          padding: 2.35% 50%;
-          font-size: 16px;
-          text-align: center;
-          text-decoration: none;
-          color: #fff;" href="/restaurants">
-          Volver
-        </a>
-      </div>
     </div>
 
     <% if (pedidos.length > 0) { %>
@@ -64,6 +52,7 @@
       <thead>
 				<tr>
           <th>Plato</th>
+          <th>Cantidad</th>
           <th>Precio</th>
           <th>Dirección</th>
           <th>Estado</th>
@@ -73,6 +62,7 @@
         <% pedidos.forEach(pedido => { %>
         <tr>
           <td ><%= pedido.plato %></td>
+          <td ><%= pedido.cantidad %></td>
           <td><%= pedido.precio %>€</td>
           <td><%= pedido.direccion %></td>
           <td <% if (pedido.estado === 'pendiente') { %> 

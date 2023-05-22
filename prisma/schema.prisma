@@ -68,6 +68,7 @@ model Pedido {
   telefono        String        @default("000000000")
   precio          String        @default("0.00")
   estado          EstadoPedido  @default(incidencia)
+  cantidad        Int           @default(1)
   plato           String
   nombre_repartidor  String     @default("NADIE")
   usuario         Usuario       @relation(fields: [id_usuario], references: [id], onUpdate: Cascade, onDelete: Cascade)

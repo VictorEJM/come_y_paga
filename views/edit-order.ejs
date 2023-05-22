@@ -13,26 +13,26 @@
 		<input type="hidden" name="id" value="<%= order.id %>">
 		
 		<label for="id_usuario">Usuario:</label>
-		<select name="id_usuario" required>
-			<% users.forEach(function(user) { %>
-				<% if (order.id_usuario === user.id) { %>
-					<option value="<%= user.id %>" selected><%= user.nombre_usuario %></option>
-				<% } else { %>
-					<option value="<%= user.id %>"><%= user.nombre_usuario %></option>
-				<% } %>
-			<% }); %>
-		</select>
+			<select name="id_usuario" required>
+				<% users.forEach(function(user) { %>
+					<% if (order.id_usuario === user.id) { %>
+						<option value="<%= user.id %>" selected><%= user.nombre_usuario %></option>
+					<% } else { %>
+						<option value="<%= user.id %>"><%= user.nombre_usuario %></option>
+					<% } %>
+				<% }); %>
+			</select>
 		
 		<label for="id_restaurante">Restaurante:</label>
-		<select name="id_restaurante" required>
-			<% restaurants.forEach(function(restaurant) { %>
-				<% if (order.id_restaurante === restaurant.id) { %>
-					<option value="<%= restaurant.id %>" selected><%= restaurant.nombre %></option>
-				<% } else { %>
-					<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
-				<% } %>
-			<% }); %>
-		</select>
+			<select name="id_restaurante" required>
+				<% restaurants.forEach(function(restaurant) { %>
+					<% if (order.id_restaurante === restaurant.id) { %>
+						<option value="<%= restaurant.id %>" selected><%= restaurant.nombre %></option>
+					<% } else { %>
+						<option value="<%= restaurant.id %>"><%= restaurant.nombre %></option>
+					<% } %>
+				<% }); %>
+			</select>
 
 		<label for="direccion">Dirección:</label>
 		<input type="text" name="direccion" value="<%= order.direccion %>" required>
@@ -53,8 +53,13 @@
 			  <option value="entregado" <%= order.estado === 'entregado' ? 'selected' : '' %>>Entregado</option>
 			  <option value="incidencia" <%= order.estado === 'incidencia' ? 'selected' : '' %>>Incidencia</option>
 			</select>
-			
-		<label for="plato">plato:</label>
+		<label for="cantidad">Cantidad:</label>
+		<fieldset>
+			<legend></legend>
+			<input type="number" name="cantidad"
+				min="1" max="99" style="width: 13%;" value="<%= order.cantidad %>">
+		</fieldset>
+		<label for="plato">Plato:</label>
 			<select name="plato" required>
 				<% plates.forEach(function(plate) { %>
 					<% if (order.plato === plate.nombre) { %>

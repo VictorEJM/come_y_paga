@@ -516,15 +516,22 @@
 				<label for="telefono">telefono:</label>
 					<input type="text" name="telefono" required>
 				<label for="precio">precio:</label>
-					<input type="range" name="precio" 
-					min="0.01" max="100.00" value="1.00" step="0.01"
-					oninput="this.nextElementSibling.value = this.value" required> 
-					<output>1.00</output>
+					<fieldset>
+						<legend></legend>
+						<input type="number" name="precio"
+						min="0.01" max="100.00" style="width: 13%;" value="1.00" step="0.01" required>
+					</fieldset>
 				<label for="estado">estado:</label>
 					<input type="radio" name="estado" value="pendiente" required> Pendiente
 					<input type="radio" name="estado" value="en_proceso" required> En proceso
 					<input type="radio" name="estado" value="entregado" required> Entregado
 					<input type="radio" name="estado" value="incidencia" required> Incidencia
+				<label for="cantidad">cantidad:</label>
+					<fieldset>
+						<legend></legend>
+						<input type="number" name="cantidad"
+							min="1" max="99" style="width: 13%;" value="1">
+					</fieldset>
 				<label for="plato">plato:</label>
 				<select name="plato" required>
 					<% plates.forEach(function(plate) { %>
@@ -534,7 +541,7 @@
 				<label for="nombre_repartidor">nombre_repartidor:</label>
 				<select name="nombre_repartidor" required>
 					<% users.filter(function(user) { return user.tipo_usuario === "repartidor"; }).forEach(function(user) { %>
-						<option value="<%= user.id %>"><%= user.nombre %></option>
+						<option value="<%= user.nombre %>"><%= user.nombre %></option>
 					<% }); %>
 				</select>
 				<button type="submit" style="font-size: 30px">Agregar pedido</button>
@@ -544,6 +551,7 @@
 					<tr>
 						<th>id</th>
 						<th>plato</th>
+						<th>cantidad</th>
 						<th>estado</th>
 						<th>Acciones</th>
 					</tr>
@@ -553,6 +561,7 @@
 						<tr>
 							<td><%= order.id %></td>
 							<td><%= order.plato %></td>
+							<td><%= order.cantidad %></td>
 							<td><%= order.estado %></td>
 							<!--
 								<td><%= order.id_usuario %></td>
@@ -565,14 +574,14 @@
 							<% var restaurant_name = ''; %>
 							<% restaurants.find(function(restaurant) { if (restaurant.id === order.id_restaurante) { restaurant_name = restaurant.nombre; return;} }); %>
 							<% var user_name = ''; %>
-							<% users.find(function(user) { if (user.id === order.id_usuario) { user_name = user.nombre; return;} }); %>
+							<% users.find(function(user) { if (user.id === order.id_usuario) { user_name = user.nombre_usuario; return;} }); %>
 							<td>
 								<button onclick="mostrarPedidoDetalles('<%= order.id %>', 
 									'<%= user_name %>', 
 									'<%= restaurant_name %>', 
 									'<%= order.direccion %>', 
 									'<%= order.telefono %>', 
-									'<%= order.precio %>', 
+									'<%= order.precio %>€', 
 									'<%= order.nombre_repartidor %>')"
 									style="background-color:#ff000000;">
 									<img src="images/admin/consult.png" alt="consultarDetalles" style="width: 25px;" />

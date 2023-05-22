@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS pedido (
   telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
   precio VARCHAR(10) NOT NULL DEFAULT 0.00,
   estado ENUM('pendiente', 'en_proceso', 'entregado', 'incidencia') NOT NULL DEFAULT 'incidencia',
+  cantidad INT UNSIGNED NOT NULL DEFAULT 1,
   plato TEXT NOT NULL,
   nombre_repartidor VARCHAR(50) NOT NULL DEFAULT 'NADIE',
   FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -71,10 +72,10 @@ VALUES
   ('Ensalada César', 12.50, 'ensalada_cesar-2023-04-01.jpg', 'entrante', 1), 
   ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03.jpg', 'principal', 2);
 
-INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor)
+INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, cantidad, plato, nombre_repartidor)
 VALUES
-  (1, 1, 'C/Administración 777', '111111111', 12.76, 'pendiente', 'Arroz a la Cubana', 'NADIE'),
-  (3, 2, 'Avenida de la Playa, 5', '987654321', 12.76, 'pendiente', 'Ensalada César', 'NADIE');
+  (1, 1, 'C/Administración 777', '111111111', 25.00, 'pendiente', 2, 'Arroz a la Cubana', 'POR CONFIRMAR'),
+  (3, 2, 'Avenida de la Playa, 5', '987654321', 30.00, 'pendiente', 3, 'Ensalada César', 'POR CONFIRMAR');
 
 -- PRUEBA CON EL DELETE ON CASCADE
 -- DELETE FROM restaurante WHERE id = 1;

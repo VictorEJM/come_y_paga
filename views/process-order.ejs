@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8" name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
-    <title>Procesar pedido</title>
+    <title>Procesar pedido - <%= plate.nombre %></title>
     <script>
     function decreaseQuantity() {
         const quantityInput = document.getElementById('cantidad');
@@ -40,10 +40,18 @@
         margin-bottom: 10px;
         box-shadow: 2px 2px 4px #00000040;
       }
+
+      .quantity-container {
+        display: flex;
+        align-items: center;
+      }
+      .quantity-container button {
+        margin: 0 5px;
+      }
     </style>
 </head>
 <body>
-  <h1>Procesar Pedido - <%= plate.nombre %></h1>
+  <h1>Procesar pedido - <%= plate.nombre %></h1>
   <div class="topnavhome" id="TopNavHome">
     <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
     
@@ -88,7 +96,7 @@
   </div>
   
   <form action="/plates/<%= plate.id %>/confirm" method="POST">
-    <label for="direccion">Dirección:</label>
+    <label for="direccion">Dirección a enviar:</label>
     <input type="text" id="direccion" name="direccion" value="<%= user.direccion %>">
     
     <!--
@@ -96,19 +104,21 @@
     <input type="email" id="email" name="email" value="<%= user.email %>">
     -->
     
-    <label for="telefono">Teléfono:</label>
+    <label for="telefono">Su teléfono:</label>
     <input type="tel" id="telefono" name="telefono" value="<%= user.telefono %>">
     
-    <label for="cantidad">Cantidad:</label>
-    <button type="button" onclick="decreaseQuantity()">-</button>
-    <input type="number" id="cantidad" name="cantidad" value="1" min="1">
-    <button type="button" onclick="increaseQuantity()">+</button>
+    <label for="cantidad">Cantidad a pedir:</label>
+      <div class="quantity-container">
+        <button type="button" onclick="decreaseQuantity()">-</button>
+        <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="99" readonly>
+        <button type="button" onclick="increaseQuantity()">+</button>
+      </div>
     
     <label for="precio">Total:</label>
     <!-- <input type="text" id="precio" name="precio" value="<%= plate.precio %>" readonly> -->
     <p id="total"><%= plate.precio %> €</p>
     
-    <button type="submit">Completar Pedido</button>
+    <button type="submit">Completar pedido</button>
   </form>
   
 </body>
