@@ -18,7 +18,7 @@ model Usuario {
   fecha_nacimiento     DateTime @default("1970-01-01T00:00:00Z")
   direccion            String   @default("desconocida")
   telefono             String   @default("000000000")
-  email                String   @default("unknown@email.com")
+  email                String   @unique @default("unknown@email.com")
   municipio            String   @default("desconocido")
   nombre_usuario       String   @unique @default("anon")
   contrasena_usuario   String   @default("1234")

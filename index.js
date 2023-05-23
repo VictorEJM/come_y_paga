@@ -75,6 +75,18 @@ const pool = mysql.createPool({
   }
 })();
 
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  // Configura los detalles del servidor de correo electrónico
+  host: 'smtp.example.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'your-email@example.com',
+    pass: '1234',
+  },
+});
+
 // Set up the middleware
 app.use(express.static('public'));
 //app.use(express.static(__dirname + '/public'));
@@ -94,6 +106,19 @@ function isNumeric(str) {
   if (typeof str != "string") return false; // we only process strings!  
   return !isNaN(str) && !isNaN(parseFloat(str)); 
 }
+
+// función para generar una contraseña aleatoria
+function generateRandomPassword(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let password = '';
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    password += characters.charAt(randomIndex);
+  }
+  return password;
+}
+
 
 
 
@@ -229,6 +254,46 @@ app.post('/logout', (req, res) => {
   console.log('Logout finished!');
 });
 
+
+/*********************************/
+/****** CONTRASEÑA OLVIDADA ******/
+/*********************************/
+app.get('/forgot-password', (req, res) => {
+  res.render('forgot-password');
+});
+
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  const randomPassword = generateRandomPassword(6); // contraseña aleatoria de 6 carácteres
+  const sha256Password = crypto.createHash('sha256').update(randomPassword).digest('hex');
+
+  console.log("contraseña aleatoria generada: " + randomPassword);
+  console.log("olvido su contraseña, sha256Password de la contraseña: " + sha256Password);
+
+  //const existingUser = await prisma.usuario.findUnique({ where: { email } });
+  const updatedUser = await prisma.usuario.update({
+    where: { email: email },
+    data: {
+      contrasena_usuario: sha256Password,
+    },
+  });
+  // para enviar un correo eléctrónico a alguien
+  const mailOptions = {
+    from: 'your-email@example.com',
+    to: email,
+    subject: 'Come Y Paga - Recuperación de contraseña',
+    text: `Tu nueva contraseña es: ${randomPassword}\nGuarda esta contraseña en un lugar seguro.`,
+  };
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error al enviar el correo electrónico:', error);
+    } else {
+      console.log('Correo electrónico enviado:', info.response);
+    }
+  });
+
+  res.render('forgot-password-success', { email });
+});
 
 
 /**********************************/

@@ -8,6 +8,15 @@
 </head>
 <body>
 	<h1>Editar pedido</h1>
+	<a style="background-color: #0485cf;
+		display: inline-block;
+		padding: 3%;
+		font-size: 16px;
+		text-align: center;
+		text-decoration: none;
+		color: #fff;" href="/admin">
+	  Volver
+	</a>
 
 	<form class="formRellenar" method="POST" action="/admin/update-order">
 		<input type="hidden" name="id" value="<%= order.id %>">
@@ -86,15 +95,6 @@
 		
 		<button type="submit">Guardar cambios</button>
 		<br/>
-		<a style="background-color: #0485cf;
-			display: inline-block;
-			padding: 3%;
-			font-size: 16px;
-			text-align: center;
-			text-decoration: none;
-			color: #fff;" href="/admin">
-		  Volver
-		</a>
 	</form>
 </body>
 </html>

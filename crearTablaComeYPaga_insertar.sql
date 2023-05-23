@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   fecha_nacimiento DATE NOT NULL DEFAULT '0001-01-01',
   direccion VARCHAR(100) NOT NULL DEFAULT 'desconocida',
   telefono VARCHAR(20) NOT NULL DEFAULT '000000000',
-  email VARCHAR(100) NOT NULL DEFAULT 'unknown@email.com',
+  email VARCHAR(100) NOT NULL UNIQUE DEFAULT 'unknown@email.com',
   municipio VARCHAR(50) NOT NULL DEFAULT 'desconocido',
   nombre_usuario VARCHAR(50) NOT NULL UNIQUE DEFAULT 'anon',
   contrasena_usuario VARCHAR(128) NOT NULL DEFAULT '1234',
