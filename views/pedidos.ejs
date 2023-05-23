@@ -28,11 +28,13 @@
             // Muestra el ticket en el contenedor
             document.getElementById("ticketContainer").innerHTML = ticket;
             document.getElementById("ticketContainer").style.display = "block";
+            document.getElementById("instruccionPulsarBtn").style.display = "none";
           })
           .catch(error => console.error(error));
       }
       function ocultarTicket() {
         document.getElementById("ticketContainer").style.display = "none";
+        document.getElementById("instruccionPulsarBtn").style.display = "block";
       }
     </script>    
   </head>
@@ -68,8 +70,8 @@
     </div>
 
     <% if (pedidos.length > 0) { %>
-      <p>PULSE SOBRE UN PEDIDO PARA MOSTRAR EL TICKET <br/>PULSE SOBRE EL TICKET PARA OCULTARLO</p>
-    <div id="ticketContainer" onclick="ocultarTicket()"></div>
+      <p id="instruccionPulsarBtn">PULSE SOBRE UN PEDIDO PARA MOSTRAR EL TICKET</p>
+    <div id="ticketContainer"></div>
     
     <table>
       <thead>
