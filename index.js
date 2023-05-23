@@ -78,14 +78,45 @@ const pool = mysql.createPool({
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   // Configura los detalles del servidor de correo electrónico
-  host: 'smtp.example.com',
+  // para gmail hay que configurar activando una opción desde ahí:
+  // https://myaccount.google.com/lesssecureapps?pli=1&rapt=AEjHL4OWycgOcIUip6zD7Q2n5HMjeGLYoR9YftEoUcT8_GTe4YqzZvo6E6N7WVgYtxfb10ucjy3MSQilLtGWH1miJqUknwd32Q
+  /*
+  host: 'smtp.gmail.com',
   port: 587,
   secure: false,
   auth: {
-    user: 'your-email@example.com',
-    pass: '1234',
+    user: 'vjaume@nigul.cide.es',
+    pass: '', // pon tu contraseña de tu gmail
+  },
+  */
+  // servicio de prueba: https://ethereal.email/
+  // ATENCIÓN: lo que hace es que sólo envía por correo a sí mismo haciendo copias de mensajes de destinatarios
+  host: 'smtp.ethereal.email',
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'liana97@ethereal.email', // cambiar si se usa ese servicio
+    pass: 'jWDshj2XM5WQebTz8j',     // cambiar si se usa ese servicio
   },
 });
+
+
+async function verifyServer() {
+  try {
+    await transporter.verify();
+    console.log('Servidor de correo iniciado');
+    console.log(
+      '- host: ' + transporter.options.host 
+      + '\n- port: ' + transporter.options.port 
+      + '\n- user: ' + transporter.options.auth.user
+      //+ '\n- pass: ' + transporter.options.auth.pass
+    );
+  } catch (error) {
+    console.error('Error al iniciar el servidor de correo:', error);
+  }
+}
+verifyServer();
+
 
 // Set up the middleware
 app.use(express.static('public'));
@@ -259,7 +290,7 @@ app.post('/logout', (req, res) => {
 /****** CONTRASEÑA OLVIDADA ******/
 /*********************************/
 app.get('/forgot-password', (req, res) => {
-  res.render('forgot-password');
+  res.render('forgot-password', { error: null });
 });
 
 app.post('/forgot-password', async (req, res) => {
@@ -267,32 +298,36 @@ app.post('/forgot-password', async (req, res) => {
   const randomPassword = generateRandomPassword(6); // contraseña aleatoria de 6 carácteres
   const sha256Password = crypto.createHash('sha256').update(randomPassword).digest('hex');
 
-  console.log("contraseña aleatoria generada: " + randomPassword);
-  console.log("olvido su contraseña, sha256Password de la contraseña: " + sha256Password);
+  const existingUser = await prisma.usuario.findUnique({ where: { email } });
+  if (existingUser) {
+    console.log("contraseña aleatoria generada: " + randomPassword);
+    console.log("olvido su contraseña, sha256Password de la contraseña: " + sha256Password);
 
-  //const existingUser = await prisma.usuario.findUnique({ where: { email } });
-  const updatedUser = await prisma.usuario.update({
-    where: { email: email },
-    data: {
-      contrasena_usuario: sha256Password,
-    },
-  });
-  // para enviar un correo eléctrónico a alguien
-  const mailOptions = {
-    from: 'your-email@example.com',
-    to: email,
-    subject: 'Come Y Paga - Recuperación de contraseña',
-    text: `Tu nueva contraseña es: ${randomPassword}\nGuarda esta contraseña en un lugar seguro.`,
-  };
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error al enviar el correo electrónico:', error);
-    } else {
-      console.log('Correo electrónico enviado:', info.response);
-    }
-  });
+    const updatedUser = await prisma.usuario.update({
+      where: { email: email },
+      data: {
+        contrasena_usuario: sha256Password,
+      },
+    });
+    // para enviar un correo eléctrónico a alguien
+    const mailOptions = {
+      from: transporter.options.auth.user,
+      to: email,
+      subject: 'Come Y Paga - Recuperación de contraseña',
+      text: `- Aquí Come Y Paga!\n\n -> Tu nueva contraseña es: ${randomPassword}\n\n\nGuarda esta contraseña en un lugar seguro. \n\nHECHO POR VICTOR EDUARDO JAUME MORADO\n\nSIN FINES DE LUCRO`,
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error al enviar el correo electrónico:', error);
+      } else {
+        console.log('Correo electrónico enviado:', info.response);
+      }
+    });
 
-  res.render('forgot-password-success', { email });
+    res.render('forgot-password-success', { email });
+  } else {
+    res.render('forgot-password', { error: 'Ese email no está en nuestra base de datos.', email });
+  }
 });
 
 

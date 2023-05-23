@@ -60,8 +60,8 @@ VALUES
   ('María', 'López', '1985-02-11', 'Avenida de la Playa, 5', '987654321', 'maria.lopez@example.com', 'Barcelona', 'marialopez', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'cliente'),
   ('Pedro', 'Gómez', '1975-04-09', 'Plaza del Ayuntamiento, 2', '555555555', 'pedro.gomez@example.com', 'Valencia', 'pedrogomez', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'repartidor'),
   ('Ana', 'Pérez', '1980-03-23', 'Calle de la Rosa, 7', '111111111', 'ana.perez@example.com', 'Madrid', 'anaperez', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'administrador'),
-  ('Saf', 'Loc', '1979-12-11', 'C/Horjas 12', '927357925', 'saf.derz@mail.com', 'Salamanca', 'saf', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'cliente');
-
+  ('Saf', 'Loc', '1979-12-11', 'C/Horjas 12', '927357925', 'lolllllzzz@yopmail.com', 'Salamanca', 'saf', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'cliente');
+-- liana97@ethereal.email
 INSERT INTO restaurante (nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas) 
 VALUES 
   ('La Terraza', 'Mediterránea', 'Calle de la Plaza 3', '+34 910123456', 'laterraza@email.com', 'Terraza', 'terraza_logo-2023-04-01.jpg', 4),
