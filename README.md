@@ -8,7 +8,7 @@ Conclusión: se tomó la decisión de hacerlo en NodeJS para poder completar la 
 ## Cómo instalar
 Necesitas NodeJS y seguir los siguientes comandos en la consola PowerShell:
 ```ps
-npm install express ejs sha256 multer sqlite3 express-session nodemailer cookie-parser mysql2 prisma @prisma/client
+npm install express ejs sha256 multer sqlite3 express-session puppeteer nodemailer cookie-parser mysql2 prisma @prisma/client
 ```
 
 ### Instalación y configuración de Prisma

@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
+const puppeteer = require('puppeteer'); // para el PDF
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
@@ -80,15 +81,14 @@ const transporter = nodemailer.createTransport({
   // Configura los detalles del servidor de correo electrónico
   // para gmail hay que configurar activando una opción desde ahí:
   // https://myaccount.google.com/lesssecureapps?pli=1&rapt=AEjHL4OWycgOcIUip6zD7Q2n5HMjeGLYoR9YftEoUcT8_GTe4YqzZvo6E6N7WVgYtxfb10ucjy3MSQilLtGWH1miJqUknwd32Q
-  /*
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
   auth: {
     user: 'vjaume@nigul.cide.es',
-    pass: '', // pon tu contraseña de tu gmail
+    pass: 'CIDEvjaume0', // pon tu contraseña de tu gmail
   },
-  */
+  /*
   // servicio de prueba: https://ethereal.email/
   // ATENCIÓN: lo que hace es que sólo envía por correo a sí mismo haciendo copias de mensajes de destinatarios
   host: 'smtp.ethereal.email',
@@ -98,6 +98,7 @@ const transporter = nodemailer.createTransport({
     user: 'liana97@ethereal.email', // cambiar si se usa ese servicio
     pass: 'jWDshj2XM5WQebTz8j',     // cambiar si se usa ese servicio
   },
+  */
 });
 
 
@@ -512,7 +513,7 @@ app.post('/plates/:id/confirm', async (req, res) => {
       : currentPlate.precio;
     
     // Guardar el pedido en la base de datos
-    await prisma.pedido.create({
+    const pedido = await prisma.pedido.create({
       data: {
         id_usuario: parseInt(userId),
         id_restaurante: parseInt(currentPlate.id_restaurante),
@@ -525,6 +526,87 @@ app.post('/plates/:id/confirm', async (req, res) => {
         nombre_repartidor: 'POR CONFIRMAR',
       }
     });
+
+    console.log(`Generando ticket-${user.nombre_usuario}-${pedido.id}...`);
+
+    // Obtén el restaurante de la base de datos
+    const restaurant = await prisma.restaurante.findUnique({
+      where: { id: parseInt(pedido.id_restaurante) }
+    });
+    // Obtén el plato de la base de datos
+    const plate = await prisma.plato.findFirst({
+      where: { nombre: pedido.plato.toString() }
+    });
+
+    
+    // Genera el ticket en HTML (puedes personalizar esto según tus necesidades)
+    let ticketHTML = `
+      <style>
+        #ticketcampos {
+          background-color: #ffff;
+        }
+        #ticketimage {
+          display: block;
+          margin: 0 auto;
+        }
+        #tickettable {
+          margin: auto;
+          margin-top: 20px;
+        }
+      </style>
+      <br/>
+      <h3 style="text-align:center;">${restaurant.nombre}</h3>
+      <p style="text-align:center;">${restaurant.direccion}<br/>
+      ${restaurant.telefono}<br/>
+      ${restaurant.email}</p>
+      <!-- <img id="ticketimage" src="/images/restaurant/${restaurant.logo}" alt="${restaurant.logo}" width="25%" /> -->
+      <!-- <img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="25%" /> -->
+      <h4 style="text-align:center;">Datos del cliente:</h4>
+      <table id="tickettable">
+        <tr id="ticketcampos">
+          <td>Nombre y apellidos del cliente:</td>
+          <td>${user.nombre} ${user.apellidos}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Teléfono:</td>
+          <td>${pedido.telefono}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Dirección:</td>
+          <td>${pedido.direccion}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>-------------------------------------</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>Plato pedido:</td>
+          <td><em>${pedido.cantidad}x</em> ${pedido.plato}</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td>-------------------------------------</td>
+        </tr>
+        <tr id="ticketcampos">
+          <td><b><em>TOTAL:</em></b></td>
+          <td><b><em>${pedido.precio}€</em></b></td>
+        </tr>
+      </table>
+      <br/>`;
+
+    // Inicia una instancia de Puppeteer
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    // Genera el archivo PDF desde el HTML del ticket
+    await page.setContent(ticketHTML);
+    await page.pdf({ path: `public/pdfs/ticket-${user.nombre_usuario}-${pedido.id}.pdf` });
+
+    // Cierra el navegador de Puppeteer
+    await browser.close();
+
+    // Envía el archivo PDF como respuesta
+    res.contentType('application/pdf');
+
+    console.log(`*** ticket-${user.nombre_usuario}-${pedido.id}.pdf GENERADO EXITOSAMENTE ***`);
 
     // Redireccionar a la página de confirmación de pedido
     res.redirect('/confirm-order');
@@ -545,8 +627,8 @@ app.post('/orders/:id/change_status', async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
   
-  console.log("id : " + id);
-  console.log("estado : " + estado);
+  // console.log("id : " + id);
+  // console.log("estado : " + estado);
   
   try {
     // Actualiza el estado del pedido en la base de datos
@@ -580,9 +662,25 @@ app.post('/orders/:id/delete-order', async function(req, res) {
     }
 
     // Eliminar el pedido de la tabla de pedido
-    await prisma.pedido.delete({
+    const orderToDelete = await prisma.pedido.delete({
       where: { id: parseInt(id) }
     });
+    
+    // Extraer los datos de usuario para poder detectar en el PDF
+    const user = await prisma.usuario.findUnique({
+      where: { id: parseInt(orderToDelete.id_usuario) }
+    });
+
+    // Verificar si el pedido existe y si tiene un archivo PDF asociado
+    if (orderToDelete) {
+      // Construir la ruta completa del archivo de imagen
+      const pdfPath = path.join(__dirname, 'public', 'pdfs', `ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf`);
+
+      // Eliminar el archivo PDF del sistema de archivos
+      fs.unlinkSync(pdfPath);
+
+      console.log(`** ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf ELIMINADO EXITOSAMENTE **`);
+    }
 
     res.redirect('/pedidos');
   } catch (error) {
@@ -603,7 +701,7 @@ app.get('/pedidos', async (req, res) => {
       }
     });
     const userId = user.id;
-    console.log("userId: " + userId);
+    // console.log("userId: " + userId);
 
     // Obtiene la lista de pedidos del usuario conectado de la base de datos
     const pedidos = await prisma.pedido.findMany({
@@ -647,8 +745,11 @@ app.get('/orders/:id/ticket', async (req, res) => {
       where: { nombre: pedido.plato.toString() }
     });
 
+    // URL para el archivo PDF
+    const pdfUrl = `/pdfs/ticket-${user.nombre_usuario}-${pedido.id}.pdf`;
+
     // Genera el ticket en HTML (puedes personalizar esto según tus necesidades)
-    const ticketHTML = `
+    let ticketHTML = `
       <style>
         #ticketcampos {
           background-color: #ffff;
@@ -664,11 +765,10 @@ app.get('/orders/:id/ticket', async (req, res) => {
       </style>
       <br/>
       <h3 style="text-align:center;">${restaurant.nombre}</h3>
-      <p>${restaurant.direccion}<br/>
+      <p style="text-align:center;">${restaurant.direccion}<br/>
       ${restaurant.telefono}<br/>
       ${restaurant.email}</p>
       <img id="ticketimage" src="/images/restaurant/${restaurant.logo}" alt="${restaurant.logo}" width="25%" />
-      <!-- <img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="25%" /> -->
       <h4 style="text-align:center;">Datos del cliente:</h4>
       <table id="tickettable">
         <tr id="ticketcampos">
@@ -691,6 +791,9 @@ app.get('/orders/:id/ticket', async (req, res) => {
           <td><em>${pedido.cantidad}x</em> ${pedido.plato}</td>
         </tr>
         <tr id="ticketcampos">
+          <td><img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="25%" /></td>
+        </tr>
+        <tr id="ticketcampos">
           <td>-------------------------------------</td>
         </tr>
         <tr id="ticketcampos">
@@ -699,10 +802,19 @@ app.get('/orders/:id/ticket', async (req, res) => {
         </tr>
       </table>
       <br/>
+      <a style="background-color: #aa0404;
+			display: block;
+			padding: 3%;
+			font-size: 16px;
+			text-align: center;
+			text-decoration: none;
+			color: #fff;" 
+      href="${pdfUrl}" download="ticket-${user.nombre_usuario}-${pedido.id}.pdf">
+        Descargar PDF
+      </a>
       <button onclick="ocultarTicket()">
         Cerrar ticket
       </button>`;
-
     
     // Envía el ticket como respuesta
     res.send(ticketHTML);
@@ -736,8 +848,8 @@ app.post('/repartidor/:id/estado', async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
   
-  console.log("id : " + id);
-  console.log("estado : " + estado);
+  // console.log("id : " + id);
+  // console.log("estado : " + estado);
   
   try {
     // Actualiza el estado del pedido en la base de datos
