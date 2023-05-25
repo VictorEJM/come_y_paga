@@ -96,10 +96,10 @@
                 <div>
                   <p>
                     <%= plate.precio %>
-                    <% if (plate.precio > 10) { %> 
-                      €€
-                    <% } else if (plate.precio > 20) { %>
+                    <% if (plate.precio > 20.00) { %>
                       €€€
+                    <% } else if (plate.precio > 10.00) { %>
+                      €€
                     <% } else { %>
                       €
                     <% } %>

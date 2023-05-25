@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   email VARCHAR(100) NOT NULL UNIQUE DEFAULT 'unknown@email.com',
   municipio VARCHAR(50) NOT NULL DEFAULT 'desconocido',
   nombre_usuario VARCHAR(50) NOT NULL UNIQUE DEFAULT 'anon',
-  contrasena_usuario VARCHAR(128) NOT NULL DEFAULT '1234',
+  contrasena_usuario VARCHAR(128) NOT NULL DEFAULT '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', -- 1234
   tipo_usuario ENUM('administrador', 'repartidor', 'cliente') NOT NULL DEFAULT 'cliente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -65,12 +65,15 @@ VALUES
 INSERT INTO restaurante (nombre, tipo_comida, direccion, telefono, email, tipologia, logo, estrellas) 
 VALUES 
   ('La Terraza', 'Mediterránea', 'Calle de la Plaza 3', '+34 910123456', 'laterraza@email.com', 'Terraza', 'terraza_logo-2023-04-01.jpg', 4),
-  ('El Rincón', 'Asiática', 'Calle del Mar 15', '+34 910789012', 'elrincon@email.com', 'Restaurante', 'rincon_logo-2023-02-03.jpg', 3);
+  ('El Rincón', 'Asiática', 'Calle del Mar 15', '+34 910789012', 'elrincon@email.com', 'Restaurante', 'rincon_logo-2023-02-03.jpg', 3),
+  ('KFC', 'Fast food', 'Calle Molinas 18', '+34 743888910', 'kfc@kfc.com', 'Comida rápida', 'kfc_logo.jpg', 5);
 
 INSERT INTO plato (nombre, precio, imagen, tipo, id_restaurante) 
 VALUES
   ('Ensalada César', 12.50, 'ensalada_cesar-2023-04-01.jpg', 'entrante', 1), 
-  ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03.jpg', 'principal', 2);
+  ('Arroz a la Cubana', 10.00, 'arroz_a_la_cubana-2023-02-03.jpg', 'principal', 2),
+  ('Nuggets', 5.45, 'kfc-nuggets.jpg', 'principal', 3),
+  ('Burger Pack (patatas, Pepsi y Burger picante)', 20.12, 'burgerpack_patatas_pepsi_kfc.jpg', 'principal', 3);
 
 INSERT INTO pedido (id_usuario, id_restaurante, direccion, telefono, precio, estado, cantidad, plato, nombre_repartidor)
 VALUES

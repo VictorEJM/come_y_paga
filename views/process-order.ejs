@@ -23,7 +23,8 @@
 
     function updateTotalPrice(quantity) {
         const totalParagraph = document.getElementById('total');
-        const platePrice = parseFloat('<%= plate.precio %>'); // Obtener el precio del plato desde la variable plate
+        let platePrice = parseFloat('<%= plate.precio %>'); // Obtener el precio del plato desde la variable plate
+        if (platePrice < 10.00) platePrice += 3;
         const totalPrice = (platePrice * quantity).toFixed(2);
         totalParagraph.innerText = totalPrice + ' €';
     }

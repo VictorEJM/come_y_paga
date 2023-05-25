@@ -151,6 +151,24 @@ function generateRandomPassword(length) {
   return password;
 }
 
+/*******************************************************************/
+/* FUNCIONES PARA COMPROBAR LAS SESIONES Y EVITAR QUE SE INFILTREN */
+/*******************************************************************/
+function estaLogeado(req, res, next) {
+  if (req.session.user != undefined) {
+    next();
+    return;
+  }
+  res.redirect("/login");
+}
+
+function checkUserRole(requiredRole) {
+  return function(req, res, next) {
+    if (req.session.user && req.session.user.tipo_usuario === requiredRole) {
+      next();
+    } else res.redirect("/login");
+  };
+}
 
 
 
@@ -171,11 +189,11 @@ app.get('/', (req, res) => {
 /*********** RESTAURANTES ********/
 /*********************************/
 // RESTAURANTES
-app.get('/restaurants', async (req, res) => {
+app.get('/restaurants', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   try {
     if (req.session.user != undefined || req.session.user != null) {
       const restaurants = await prisma.restaurante.findMany();
-      res.render('restaurants', { restaurants, user: req.session.user });
+      res.render('restaurants', { restaurants, user: req.session.user.nombre_usuario });
     } else res.render('error');
     console.log("req.session.user: " + req.session.user);
   } catch (error) {
@@ -190,7 +208,7 @@ app.get('/restaurants', async (req, res) => {
 /************ PLATOS ***********/
 /*******************************/
 // PLATOS DE UN RESTAURANTE
-app.get('/plates/:id', async (req, res) => {
+app.get('/plates/:id', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
   try {
     const plates = await prisma.plato.findMany({
@@ -203,7 +221,7 @@ app.get('/plates/:id', async (req, res) => {
         id: Number(id)
       }
     });
-    res.render('plates', { plates: plates, user: req.session.user, restaurant: restaurant });
+    res.render('plates', { plates: plates, user: req.session.user.nombre_usuario, restaurant: restaurant });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -253,7 +271,7 @@ app.post('/login', async (req, res) => {
     // TOFIX: USAR ESO PARA ALMACENAR EL OBJETO USUARIO PARA PODER OBTENER LAS PROPIEDADES
     req.session.user = user; // con esto, puedes acceder al tipo
     // ahora lo tengo así:
-    req.session.user = username;
+    //req.session.user = username;
     // req.session.user.nombre_usuario = username;
     req.session.user.id = user.id;
     console.log('user.id:' + user.id);
@@ -472,7 +490,7 @@ app.post('/register', async (req, res) => {
 /************************************/
 // PROCESO DEL PEDIDO
 let currentPlate; // Variable para almacenar el plato actual
-app.get('/plates/:id/process', async (req, res) => {
+app.get('/plates/:id/process', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
   try {
     currentPlate = await prisma.plato.findUnique({
@@ -482,7 +500,7 @@ app.get('/plates/:id/process', async (req, res) => {
     });
     const user = await prisma.usuario.findUnique({
       where: {
-        nombre_usuario: req.session.user
+        nombre_usuario: req.session.user.nombre_usuario
       }
     });
     res.render('process-order', { plate: currentPlate, user });
@@ -493,7 +511,7 @@ app.get('/plates/:id/process', async (req, res) => {
 });
 
 // PEDIDO A CONFIRMAR
-app.post('/plates/:id/confirm', async (req, res) => {
+app.post('/plates/:id/confirm', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
   const { direccion, telefono, cantidad } = req.body;
 
@@ -501,7 +519,7 @@ app.post('/plates/:id/confirm', async (req, res) => {
     // para obtener la ID del usuario conectado
     const user = await prisma.usuario.findUnique({
       where: {
-        nombre_usuario: req.session.user
+        nombre_usuario: req.session.user.nombre_usuario
       }
     });
     const userId = user.id;
@@ -623,13 +641,13 @@ app.post('/plates/:id/confirm', async (req, res) => {
 });
 
 // PÁGINA DE CONFIRMACIÓN DE PEDIDO
-app.get('/confirm-order', (req, res) => {
+app.get('/confirm-order', estaLogeado, checkUserRole('cliente'), (req, res) => {
   // Renderizar la página de confirmación de pedido
   res.render('confirm-order', { title: 'PEDIDO CONFIRMADO' });
 });
 
 // CAMBIAR ESTADO DE PEDIDO POR PARTE DEL CLIENTE
-app.post('/orders/:id/change_status', async (req, res) => {
+app.post('/orders/:id/change_status', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
 
@@ -654,7 +672,7 @@ app.post('/orders/:id/change_status', async (req, res) => {
 });
 
 // ELIMINAR PEDIDO
-app.post('/orders/:id/delete-order', async function (req, res) {
+app.post('/orders/:id/delete-order', estaLogeado, checkUserRole('cliente'), async function (req, res) {
   // Obtener el ID del pedido a eliminar
   const { id } = req.params;
   const { estado } = req.body;
@@ -697,13 +715,13 @@ app.post('/orders/:id/delete-order', async function (req, res) {
 
 // LISTA DE PEDIDOS
 // Manejador para mostrar la lista de pedidos
-app.get('/pedidos', async (req, res) => {
+app.get('/pedidos', estaLogeado, checkUserRole('cliente'), async (req, res) => {
 
   try {
     // para obtener la ID del usuario conectado
     const user = await prisma.usuario.findUnique({
       where: {
-        nombre_usuario: req.session.user
+        nombre_usuario: req.session.user.nombre_usuario
       }
     });
     const userId = user.id;
@@ -722,7 +740,7 @@ app.get('/pedidos', async (req, res) => {
     });
 
     // Renderiza la plantilla HTML y pasa los datos de los pedidos como contexto
-    res.render('pedidos', { user: req.session.user, pedidos });
+    res.render('pedidos', { user: req.session.user.nombre_usuario, pedidos });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al obtener la lista de pedidos');
@@ -730,7 +748,7 @@ app.get('/pedidos', async (req, res) => {
 });
 
 // MOSTRAR TICKET
-app.get('/orders/:id/ticket', async (req, res) => {
+app.get('/orders/:id/ticket', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -835,14 +853,14 @@ app.get('/orders/:id/ticket', async (req, res) => {
 /**************************************/
 /************* REPARTIDOR *************/
 /**************************************/
-app.get('/repartidor', isRepartidor, async (req, res) => {
+app.get('/repartidor', estaLogeado, checkUserRole('repartidor'), async (req, res) => {
   try {
     const usuarioId = req.session.user.id;
     const pedidos = await prisma.pedido.findMany({
       include: { usuario: true, restaurante: true },
       orderBy: { id: 'desc' } // ordenar de más nuevo hasta más antiguo
     });
-    res.render('repartidor', { usuario: req.session.user, pedidos });
+    res.render('repartidor', { usuario: req.session.user.nombre_usuario, pedidos });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al obtener la lista de pedidos');
@@ -850,7 +868,7 @@ app.get('/repartidor', isRepartidor, async (req, res) => {
 });
 
 // Manejador para actualizar el estado de un pedido
-app.post('/repartidor/:id/estado', async (req, res) => {
+app.post('/repartidor/:id/estado', estaLogeado, checkUserRole('repartidor'), async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
 
@@ -863,60 +881,25 @@ app.post('/repartidor/:id/estado', async (req, res) => {
       where: { id: parseInt(id) },
       data: {
         estado: estado,
-        nombre_repartidor: req.session.user
+        nombre_repartidor: req.session.user.nombre_usuario
       }
     });
 
     // Redirige a la página de nuevo
     res.redirect('/repartidor');
-    // res.render('repartidor', { usuario: req.session.user, pedidos, estado });
+    // res.render('repartidor', { usuario: req.session.user.nombre_usuario, pedidos, estado });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error al actualizar el estado del pedido');
   }
 });
 
-// TOFIX: USAR FUNCIONES PARA COMPROBAR LAS SESIONES Y 
-// EVITAR QUE OCURRA UNA FUGA DE PUERTA TRASERA
-// SIN INICIAR SESIÓN
 
-function estaLogeado(req, res, next) {
-  if (req.session.user != undefined) {
-    next();
-    return;
-  }
-  res.redirect("/login");
-}
-
-function isClient(req, res, next) {
-  // para que el admin no pueda entrar como usuario
-  // if user.type == cliente
-}
-
-function isRepartidor(req, res, next) {
-  // if user.type == repartidor
-
-}
-
-function isAdmin(req, res, next) {
-  // si en session solo hay el nombre usuario
-  // get user from prisma -- no hace falta, puedes leer directamente req.session.user.tipo_usuario
-  // check user is admin.
-  // if user.type == admin
-  // next();
-  // return;
-  // else
-  // res.redirect(/login)
-
-  // req.session.user.tipo
-  // req.session.user.nombre
-  next();
-}
 
 /*************************************/
 /********** ADMINISTRACIÓN ***********/
 /*************************************/
-app.get('/admin', isAdmin, async (req, res) => {
+app.get('/admin', estaLogeado, checkUserRole('administrador'), async (req, res) => {
   try {
     const users = await prisma.usuario.findMany();
     const restaurants = await prisma.restaurante.findMany();
@@ -934,7 +917,7 @@ app.get('/admin', isAdmin, async (req, res) => {
 /* USUARIO */
 /***********/
 // Agregar usuario
-app.post('/admin/add-user', isAdmin, async (req, res) => {
+app.post('/admin/add-user', estaLogeado, checkUserRole('administrador'), async (req, res) => {
   const connection = await pool.getConnection();
   const users = await prisma.usuario.findMany();
   const restaurants = await prisma.restaurante.findMany();
@@ -1056,7 +1039,7 @@ app.post('/admin/add-user', isAdmin, async (req, res) => {
 });
 
 // Editar usuario
-app.post('/admin/edit-user', isAdmin, async function (req, res) {
+app.post('/admin/edit-user', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del usuario a editar
   const id = req.body.id;
   try {
@@ -1079,7 +1062,7 @@ app.post('/admin/edit-user', isAdmin, async function (req, res) {
 });
 
 // Actualizar usuario
-app.post('/admin/update-user', async function (req, res) {
+app.post('/admin/update-user', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener los datos del formulario
   const { id, nombre, apellidos, fecha_nacimiento, direccion,
     telefono, email, municipio,
@@ -1117,7 +1100,7 @@ app.post('/admin/update-user', async function (req, res) {
 });
 
 // Eliminar usuario
-app.post('/admin/delete-user', async function (req, res) {
+app.post('/admin/delete-user', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del usuario a eliminar
   const id = req.body.id;
 
@@ -1139,7 +1122,7 @@ app.post('/admin/delete-user', async function (req, res) {
 /* RESTAURANTE */
 /***************/
 // Agregar restaurante
-app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (req, res) => {
+app.post('/admin/add-restaurant', estaLogeado, checkUserRole('administrador'), uploadImageRestaurant.single('logo'), async (req, res) => {
   const connection = await pool.getConnection();
   const users = await prisma.usuario.findMany();
   const restaurants = await prisma.restaurante.findMany();
@@ -1245,7 +1228,7 @@ app.post('/admin/add-restaurant', uploadImageRestaurant.single('logo'), async (r
 });
 
 // Editar restaurante
-app.post('/admin/edit-restaurant', async function (req, res) {
+app.post('/admin/edit-restaurant', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del restaurante a editar
   const id = req.body.id;
   try {
@@ -1261,7 +1244,7 @@ app.post('/admin/edit-restaurant', async function (req, res) {
 });
 
 // Actualizar restaurante
-app.post('/admin/update-restaurant', uploadImageRestaurant.single('logo'), async function (req, res) {
+app.post('/admin/update-restaurant', estaLogeado, checkUserRole('administrador'), uploadImageRestaurant.single('logo'), async function (req, res) {
   const logoPath = req.file ? req.file.filename : req.body.logo; // Obtén el nombre del archivo si existe, de lo contrario, utiliza el valor anterior de restaurant.logo
   // Obtener los datos del formulario
   const { id, nombre, tipo_comida, direccion, telefono, email, tipologia, estrellas } = req.body;
@@ -1291,7 +1274,7 @@ app.post('/admin/update-restaurant', uploadImageRestaurant.single('logo'), async
 });
 
 // Eliminar restaurante
-app.post('/admin/delete-restaurant', async function (req, res) {
+app.post('/admin/delete-restaurant', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del restaurante a eliminar
   const id = req.body.id;
 
@@ -1327,7 +1310,7 @@ app.post('/admin/delete-restaurant', async function (req, res) {
 /* PLATO */
 /*********/
 // Agregar plato
-app.post('/admin/add-plate', uploadImagePlate.single('imagen'), async (req, res) => {
+app.post('/admin/add-plate', estaLogeado, checkUserRole('administrador'), uploadImagePlate.single('imagen'), async (req, res) => {
   const connection = await pool.getConnection();
   const users = await prisma.usuario.findMany();
   const restaurants = await prisma.restaurante.findMany();
@@ -1409,7 +1392,7 @@ app.post('/admin/add-plate', uploadImagePlate.single('imagen'), async (req, res)
 });
 
 // Editar plato
-app.post('/admin/edit-plate', async function (req, res) {
+app.post('/admin/edit-plate', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   const restaurants = await prisma.restaurante.findMany(); // para mostrar los restaurantes que hay
   // Obtener el ID del plato a editar
   const id = req.body.id;
@@ -1427,7 +1410,7 @@ app.post('/admin/edit-plate', async function (req, res) {
 });
 
 // Actualizar plato
-app.post('/admin/update-plate', uploadImagePlate.single('imagen'), async function (req, res) {
+app.post('/admin/update-plate', estaLogeado, checkUserRole('administrador'), uploadImagePlate.single('imagen'), async function (req, res) {
   // Obtener los datos del formulario
   const imagenPath = req.file ? req.file.filename : req.body.imagen; // Obtén el nombre del archivo si existe
   const { id, nombre, precio, imagen, tipo, id_restaurante } = req.body;
@@ -1454,7 +1437,7 @@ app.post('/admin/update-plate', uploadImagePlate.single('imagen'), async functio
 });
 
 // Eliminar plato
-app.post('/admin/delete-plate', async function (req, res) {
+app.post('/admin/delete-plate', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del plato a eliminar
   const id = req.body.id;
 
@@ -1490,7 +1473,7 @@ app.post('/admin/delete-plate', async function (req, res) {
 /* PEDIDO */
 /**********/
 // Agregar pedido
-app.post('/admin/add-order', async (req, res) => {
+app.post('/admin/add-order', estaLogeado, checkUserRole('administrador'), async (req, res) => {
   const connection = await pool.getConnection();
   const users = await prisma.usuario.findMany();
   const restaurants = await prisma.restaurante.findMany();
@@ -1602,7 +1585,7 @@ app.post('/admin/add-order', async (req, res) => {
 });
 
 // Editar pedido
-app.post('/admin/edit-order', async function (req, res) {
+app.post('/admin/edit-order', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   const users = await prisma.usuario.findMany(); // para mostrar los usuarios que hay
   const restaurants = await prisma.restaurante.findMany(); // para mostrar los restaurantes que hay
   const plates = await prisma.plato.findMany();
@@ -1621,9 +1604,9 @@ app.post('/admin/edit-order', async function (req, res) {
 });
 
 // Actualizar pedido
-app.post('/admin/update-order', async function (req, res) {
+app.post('/admin/update-order', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener los datos del formulario
-  const { id, id_usuario, id_restaurante, direccion, telefono, precio, estado, plato, nombre_repartidor } = req.body;
+  const { id, id_usuario, id_restaurante, direccion, telefono, precio, cantidad, estado, plato, nombre_repartidor } = req.body;
 
   try {
     // Actualizar los datos del pedido en la base de datos
@@ -1651,7 +1634,7 @@ app.post('/admin/update-order', async function (req, res) {
 });
 
 // Eliminar pedido
-app.post('/admin/delete-order', async function (req, res) {
+app.post('/admin/delete-order', estaLogeado, checkUserRole('administrador'), async function (req, res) {
   // Obtener el ID del pedido a eliminar
   const id = req.body.id;
 
