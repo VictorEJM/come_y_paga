@@ -94,12 +94,15 @@
             </button>
           </td>
           <td >
-            <!-- <%= pedido.cantidad %> -->
-            <!-- Agrega el formulario para actualizar la cantidad -->
-            <form action="/orders/<%= pedido.id %>/update-quantity" method="POST">
-              <input type="number" name="cantidad" value="<%= pedido.cantidad %>" min="1">
-              <button type="submit">Actualizar</button>
-            </form>
+            <% if (pedido.estado !== 'entregado' && pedido.estado !== 'en_proceso' && pedido.estado !== 'incidencia') { %>
+              <!-- Agrega el formulario para actualizar la cantidad -->
+              <form action="/orders/<%= pedido.id %>/update-quantity" method="POST">
+                <input type="number" name="cantidad" value="<%= pedido.cantidad %>" min="1">
+                <button type="submit">Actualizar</button>
+              </form> 
+            <% } else { %>
+              <%= pedido.cantidad %>
+            <% } %>
           </td>
           <td><%= pedido.precio %>€</td>
           <td><%= pedido.direccion %></td>

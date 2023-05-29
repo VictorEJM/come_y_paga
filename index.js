@@ -88,8 +88,8 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: 'vjaume@nigul.cide.es',
     pass: '', // pon tu contraseña de tu gmail
-  },*/
-  // servicio de prueba: https://ethereal.email/
+  },// servicio de prueba: https://ethereal.email/
+  */
   // ATENCIÓN: lo que hace es que sólo envía por correo a sí mismo haciendo copias de mensajes de destinatarios
   host: 'smtp.ethereal.email',
   port: 587,
@@ -774,7 +774,6 @@ app.get('/pedidos', estaLogeado, checkUserRole('cliente'), async (req, res) => {
 });
 
 // ACTUALIZAR CANTIDAD
-// ACTUALIZAR CANTIDAD
 app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), async (req, res) => {
   const { id } = req.params;
   const { cantidad } = req.body;
@@ -798,16 +797,25 @@ app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), a
       return res.status(404).send('Plato no encontrado');
     }
 
+    let precioPlato = plato.precio.toFixed(2);
+    if (parseFloat(precioPlato) < 10.00) {
+      precioPlato = (parseFloat(precioPlato) + 3).toFixed(2);
+    }
+    precioPlato = (parseFloat(precioPlato) < 10.00 && parseInt(cantidad) <= 1) 
+      ? ((plato.precio + 3.00) * parseInt(cantidad)).toFixed(2)
+      : (plato.precio * parseInt(cantidad)).toFixed(2);
+    
+    console.log("precio actualizado: " + precioPlato);
+    
     // Actualiza la cantidad del plato en el pedido
     await prisma.pedido.update({
       where: { id: parseInt(id) },
       data: {
         cantidad: parseInt(cantidad),
-        precio: (plato.precio < 10.00) ? (plato.precio + 3.00)
-        : (plato.precio * parseInt(cantidad)).toFixed(2)
+        precio: precioPlato.toString()
       }
     });
-
+        
     res.redirect('/pedidos');
   } catch (error) {
     console.error(error);
