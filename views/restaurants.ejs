@@ -85,6 +85,19 @@
                 <div><%= restaurant.direccion %></div>
                 <div><%= restaurant.telefono %></div>
                 <div><%= restaurant.email %></div>
+                <% const averagePrice = averagePrices.find(ap => ap.restaurantId === restaurant.id); %>
+                <% if (averagePrice && averagePrice.averagePrice) { %>
+                  <p> <% if (averagePrice.averagePrice._avg.precio < 10) { %>
+                      €
+                    <% } else if (averagePrice.averagePrice._avg.precio < 20) { %>
+                      €€
+                    <% } else if (averagePrice.averagePrice._avg.precio > 20) { %>
+                      €€€
+                    <% } %>
+                  </p>
+                <% } else { %>
+                  <p>No se encontró información de precios</p>
+                <% } %>
                 <div>
                   <% for (let i = 1; i <= 5 + 1; i++) { %>
                     <% const starNum = i - 1 %>

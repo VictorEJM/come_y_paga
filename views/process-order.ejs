@@ -7,10 +7,22 @@
     function decreaseQuantity() {
         const quantityInput = document.getElementById('cantidad');
         let quantity = parseInt(quantityInput.value);
-        if (quantity > 1) {
+        if (quantity == 2) {
+          quantity--;
+          quantityInput.value = quantity;
+          let platePrice = parseFloat('<%= plate.precio %>');
+          const totalPrice = (platePrice * quantity).toFixed(2);
+          const totalParagraph = document.getElementById('total');
+          totalParagraph.innerText = totalPrice + ' €';
+        } else if (quantity > 1) {
             quantity--;
             quantityInput.value = quantity;
             updateTotalPrice(quantity);
+        } else {
+          let platePrice = parseFloat('<%= plate.precio %>');
+          const totalPrice = (platePrice * quantity).toFixed(2);
+          const totalParagraph = document.getElementById('total');
+          totalParagraph.innerText = totalPrice + ' €';
         }
     }
     function increaseQuantity() {
@@ -23,8 +35,7 @@
 
     function updateTotalPrice(quantity) {
         const totalParagraph = document.getElementById('total');
-        let platePrice = parseFloat('<%= plate.precio %>'); // Obtener el precio del plato desde la variable plate
-        if (platePrice < 10.00) platePrice += 3;
+        let platePrice = parseFloat('<%= precioOriginal %>'); // Obtener el precio del plato desde la variable plate
         const totalPrice = (platePrice * quantity).toFixed(2);
         totalParagraph.innerText = totalPrice + ' €';
     }
@@ -86,7 +97,7 @@
         font-size: 16px;
         text-align: center;
         text-decoration: none;
-        color: #fff;" href="/plates/<%= plate.id %>">
+        color: #fff;" href="javascript:window.history.back()">
         Volver
       </a>
     </div>
@@ -119,12 +130,7 @@
     <!-- <input type="text" id="precio" name="precio" value="<%= plate.precio %>" readonly> -->
     <p id="total">
         <!-- Si el precio mínimo no es 10, entonces se le cobrará 3€ más -->
-        <% const precio_menorconfirmado = plate.precio + 3; %>
-        <% if (plate.precio < 10.00) { %>
-          <%= precio_menorconfirmado %>
-        <% } else { %> 
-          <%= plate.precio %>
-        <% } %>
+        <%= plate.precio %>
       €</p>
     <b>Se cobrarán 3 € de gastos de envío si los pedidos son inferiores a 10 €</b>
     <button type="submit">Completar pedido</button>

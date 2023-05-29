@@ -40,7 +40,7 @@
   </head>
   <body>
     <h1>PEDIDOS</h1>
-
+<!-- TOFIX: modificar pedido de lo que quiere el usuario, cantidad, cambiar direccion, ... -->
     <div class="topnavhome" id="TopNavHome">
       <!-- TODO: USAR ESTE NAVBAR https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_topnav -->
       
@@ -86,9 +86,21 @@
       </thead>
       <tbody>
         <% pedidos.forEach(pedido => { %>
-        <tr onclick="mostrarTicket('<%= pedido.id %>')">
-          <td ><%= pedido.plato %></td>
-          <td ><%= pedido.cantidad %></td>
+        <tr>
+          <td >
+            <%= pedido.plato %>
+            <button onclick="mostrarTicket('<%= pedido.id %>')">
+            VER TICKET
+            </button>
+          </td>
+          <td >
+            <!-- <%= pedido.cantidad %> -->
+            <!-- Agrega el formulario para actualizar la cantidad -->
+            <form action="/orders/<%= pedido.id %>/update-quantity" method="POST">
+              <input type="number" name="cantidad" value="<%= pedido.cantidad %>" min="1">
+              <button type="submit">Actualizar</button>
+            </form>
+          </td>
           <td><%= pedido.precio %>€</td>
           <td><%= pedido.direccion %></td>
           <td <% if (pedido.estado === 'pendiente') { %> 

@@ -88,8 +88,7 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: 'vjaume@nigul.cide.es',
     pass: '', // pon tu contraseña de tu gmail
-  },
-  */
+  },*/
   // servicio de prueba: https://ethereal.email/
   // ATENCIÓN: lo que hace es que sólo envía por correo a sí mismo haciendo copias de mensajes de destinatarios
   host: 'smtp.ethereal.email',
@@ -193,8 +192,31 @@ app.get('/restaurants', estaLogeado, checkUserRole('cliente'), async (req, res) 
   try {
     if (req.session.user != undefined || req.session.user != null) {
       const restaurants = await prisma.restaurante.findMany();
-      res.render('restaurants', { restaurants, user: req.session.user.nombre_usuario });
-    } else res.render('error');
+      
+      // Obtener la media del precio de los platos para cada restaurante
+      const averagePrices = await Promise.all(restaurants.map(async (restaurant) => {
+        const averagePrice = await prisma.plato.aggregate({
+          where: {
+            id_restaurante: restaurant.id
+          },
+          _avg: {
+            precio: true
+          }
+        });
+      
+        console.log("averagePrice._avg.precio: " + averagePrice._avg.precio);
+      
+        return {
+          restaurantId: restaurant.id,
+          averagePrice
+        };
+      }));
+      
+
+      res.render('restaurants', { restaurants, user: req.session.user.nombre_usuario, averagePrices });
+    } else {
+      res.render('error');
+    }
     console.log("req.session.user: " + req.session.user);
   } catch (error) {
     console.log(error);
@@ -503,7 +525,11 @@ app.get('/plates/:id/process', estaLogeado, checkUserRole('cliente'), async (req
         nombre_usuario: req.session.user.nombre_usuario
       }
     });
-    res.render('process-order', { plate: currentPlate, user });
+    
+    let precioOriginal = currentPlate.precio;
+    if (currentPlate.precio < 10.00) currentPlate.precio += 3;
+
+    res.render('process-order', { plate: currentPlate, precioOriginal: precioOriginal, user });
   } catch (error) {
     console.log(error);
     res.render('error');
@@ -746,6 +772,50 @@ app.get('/pedidos', estaLogeado, checkUserRole('cliente'), async (req, res) => {
     res.status(500).send('Error al obtener la lista de pedidos');
   }
 });
+
+// ACTUALIZAR CANTIDAD
+// ACTUALIZAR CANTIDAD
+app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), async (req, res) => {
+  const { id } = req.params;
+  const { cantidad } = req.body;
+
+  try {
+    // Buscar el pedido en la base de datos
+    const pedido = await prisma.pedido.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!pedido) {
+      return res.status(404).send('Pedido no encontrado');
+    }
+
+    // Obtén el plato de la base de datos por su nombre
+    const plato = await prisma.plato.findFirst({
+      where: { nombre: pedido.plato }
+    });
+
+    if (!plato) {
+      return res.status(404).send('Plato no encontrado');
+    }
+
+    // Actualiza la cantidad del plato en el pedido
+    await prisma.pedido.update({
+      where: { id: parseInt(id) },
+      data: {
+        cantidad: parseInt(cantidad),
+        precio: (plato.precio < 10.00) ? (plato.precio + 3.00)
+        : (plato.precio * parseInt(cantidad)).toFixed(2)
+      }
+    });
+
+    res.redirect('/pedidos');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al actualizar la cantidad del plato');
+  }
+});
+
+
 
 // MOSTRAR TICKET
 app.get('/orders/:id/ticket', estaLogeado, checkUserRole('cliente'), async (req, res) => {
