@@ -117,7 +117,6 @@ async function verifyServer() {
 }
 verifyServer();
 
-
 // Set up the middleware
 app.use(express.static('public'));
 //app.use(express.static(__dirname + '/public'));
@@ -149,6 +148,104 @@ function generateRandomPassword(length) {
   }
   return password;
 }
+
+/*****************/
+/* FUNCIONES PDF */
+/*****************/
+async function generarPDF(res, user, restaurant, plate, pedido, regenerar) {
+  // Genera el ticket en HTML (puedes personalizar esto según tus necesidades)
+  let ticketHTML = `
+    <style>
+      #ticketcampos {
+        background-color: #ffff;
+      }
+      #ticketimage {
+        display: block;
+        margin: 0 auto;
+      }
+      #tickettable {
+        margin: auto;
+        margin-top: 20px;
+      }
+    </style>
+    <br/>
+    <h3 style="text-align:center;">${restaurant.nombre}</h3>
+    <p style="text-align:center;">${restaurant.direccion}<br/>
+    ${restaurant.telefono}<br/>
+    ${restaurant.email}</p>
+    <!-- <img id="ticketimage" src="/images/restaurant/${restaurant.logo}" alt="${restaurant.logo}" width="25%" /> -->
+    <!-- <img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="25%" /> -->
+    <h4 style="text-align:center;">Datos del cliente:</h4>
+    <table id="tickettable">
+      <tr id="ticketcampos">
+        <td>Nombre y apellidos del cliente:</td>
+        <td>${user.nombre} ${user.apellidos}</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td>Teléfono:</td>
+        <td>${pedido.telefono}</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td>Dirección:</td>
+        <td>${pedido.direccion}</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td>-------------------------------------</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td>Plato pedido:</td>
+        <td><em>${pedido.cantidad}x</em> ${pedido.plato}</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td>-------------------------------------</td>
+      </tr>
+      <tr id="ticketcampos">
+        <td><b><em>TOTAL:</em></b></td>
+        <td><b><em>${pedido.precio}€</em></b></td>
+      </tr>
+    </table>
+    <br/>`;
+    
+  // Envía el archivo PDF como respuesta
+  res.contentType('application/pdf');
+  
+  // Inicia una instancia de Puppeteer
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  // Genera el archivo PDF desde el HTML del ticket
+  await page.setContent(ticketHTML);
+  await page.pdf({ path: `public/pdfs/ticket-${user.nombre_usuario}-${pedido.id}.pdf` });
+
+  // Cierra el navegador de Puppeteer
+  await browser.close();
+
+  console.log(`*** ticket-${user.nombre_usuario}-${pedido.id}.pdf `);
+  if (regenerar) {
+    console.log(`REGENERADO EXITOSAMENTE ***`);
+    return;
+  }
+  console.log(`GENERADO EXITOSAMENTE ***`);
+}
+
+async function eliminarPDF(orderToDelete) {
+  // Extraer los datos de usuario para poder detectar en el PDF
+  const user = await prisma.usuario.findUnique({
+    where: { id: parseInt(orderToDelete.id_usuario) }
+  });
+
+  // Verificar si el pedido existe y si tiene un archivo PDF asociado
+  if (orderToDelete) {
+    // Construir la ruta completa del archivo de imagen
+    const pdfPath = path.join(__dirname, 'public', 'pdfs', `ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf`);
+
+    // Eliminar el archivo PDF del sistema de archivos
+    await fs.unlinkSync(pdfPath);
+
+    console.log(`** ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf ELIMINADO EXITOSAMENTE **`);
+  }
+}
+
 
 /*******************************************************************/
 /* FUNCIONES PARA COMPROBAR LAS SESIONES Y EVITAR QUE SE INFILTREN */
@@ -289,13 +386,9 @@ app.post('/login', async (req, res) => {
     console.log('Successful login');
 
     // GUARDAR SESIÓN DEL USUARIO
-
-    // TOFIX: USAR ESO PARA ALMACENAR EL OBJETO USUARIO PARA PODER OBTENER LAS PROPIEDADES
-    req.session.user = user; // con esto, puedes acceder al tipo
-    // ahora lo tengo así:
-    //req.session.user = username;
+    req.session.user = user;
     // req.session.user.nombre_usuario = username;
-    req.session.user.id = user.id;
+    // req.session.user.id = user.id;
     console.log('user.id:' + user.id);
     req.session.save();
 
@@ -577,6 +670,7 @@ app.post('/plates/:id/confirm', estaLogeado, checkUserRole('cliente'), async (re
       }
     });
 
+    /*********** GENERAR PDF ***********/
     console.log(`Generando ticket-${user.nombre_usuario}-${pedido.id}...`);
 
     // Obtén el restaurante de la base de datos
@@ -588,75 +682,7 @@ app.post('/plates/:id/confirm', estaLogeado, checkUserRole('cliente'), async (re
       where: { nombre: pedido.plato.toString() }
     });
 
-
-    // Genera el ticket en HTML (puedes personalizar esto según tus necesidades)
-    let ticketHTML = `
-      <style>
-        #ticketcampos {
-          background-color: #ffff;
-        }
-        #ticketimage {
-          display: block;
-          margin: 0 auto;
-        }
-        #tickettable {
-          margin: auto;
-          margin-top: 20px;
-        }
-      </style>
-      <br/>
-      <h3 style="text-align:center;">${restaurant.nombre}</h3>
-      <p style="text-align:center;">${restaurant.direccion}<br/>
-      ${restaurant.telefono}<br/>
-      ${restaurant.email}</p>
-      <!-- <img id="ticketimage" src="/images/restaurant/${restaurant.logo}" alt="${restaurant.logo}" width="25%" /> -->
-      <!-- <img id="ticketimage" src="/images/plate/${plate.imagen}" alt="${plate.imagen}" width="25%" /> -->
-      <h4 style="text-align:center;">Datos del cliente:</h4>
-      <table id="tickettable">
-        <tr id="ticketcampos">
-          <td>Nombre y apellidos del cliente:</td>
-          <td>${user.nombre} ${user.apellidos}</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td>Teléfono:</td>
-          <td>${pedido.telefono}</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td>Dirección:</td>
-          <td>${pedido.direccion}</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td>-------------------------------------</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td>Plato pedido:</td>
-          <td><em>${pedido.cantidad}x</em> ${pedido.plato}</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td>-------------------------------------</td>
-        </tr>
-        <tr id="ticketcampos">
-          <td><b><em>TOTAL:</em></b></td>
-          <td><b><em>${pedido.precio}€</em></b></td>
-        </tr>
-      </table>
-      <br/>`;
-
-    // Inicia una instancia de Puppeteer
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-
-    // Genera el archivo PDF desde el HTML del ticket
-    await page.setContent(ticketHTML);
-    await page.pdf({ path: `public/pdfs/ticket-${user.nombre_usuario}-${pedido.id}.pdf` });
-
-    // Cierra el navegador de Puppeteer
-    await browser.close();
-
-    // Envía el archivo PDF como respuesta
-    res.contentType('application/pdf');
-
-    console.log(`*** ticket-${user.nombre_usuario}-${pedido.id}.pdf GENERADO EXITOSAMENTE ***`);
+    generarPDF(res, user, restaurant, plate, pedido, false);
 
     // Redireccionar a la página de confirmación de pedido
     res.redirect('/confirm-order');
@@ -716,21 +742,8 @@ app.post('/orders/:id/delete-order', estaLogeado, checkUserRole('cliente'), asyn
       where: { id: parseInt(id) }
     });
 
-    // Extraer los datos de usuario para poder detectar en el PDF
-    const user = await prisma.usuario.findUnique({
-      where: { id: parseInt(orderToDelete.id_usuario) }
-    });
-
-    // Verificar si el pedido existe y si tiene un archivo PDF asociado
-    if (orderToDelete) {
-      // Construir la ruta completa del archivo de imagen
-      const pdfPath = path.join(__dirname, 'public', 'pdfs', `ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf`);
-
-      // Eliminar el archivo PDF del sistema de archivos
-      fs.unlinkSync(pdfPath);
-
-      console.log(`** ticket-${user.nombre_usuario}-${orderToDelete.id}.pdf ELIMINADO EXITOSAMENTE **`);
-    }
+    /********** ELIMINAR PDF **********/
+    eliminarPDF(orderToDelete);
 
     res.redirect('/pedidos');
   } catch (error) {
@@ -780,7 +793,7 @@ app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), a
 
   try {
     // Buscar el pedido en la base de datos
-    const pedido = await prisma.pedido.findUnique({
+    let pedido = await prisma.pedido.findUnique({
       where: { id: parseInt(id) }
     });
 
@@ -808,13 +821,29 @@ app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), a
     console.log("precio actualizado: " + precioPlato);
     
     // Actualiza la cantidad del plato en el pedido
-    await prisma.pedido.update({
+    pedido = await prisma.pedido.update({
       where: { id: parseInt(id) },
       data: {
         cantidad: parseInt(cantidad),
         precio: precioPlato.toString()
       }
     });
+
+    /************** REGENERAR PDF **************/
+    // Obtén el usuario de la base de datos
+    const user = await prisma.usuario.findUnique({
+      where: { id: parseInt(pedido.id_usuario) }
+    });
+    // Obtén el restaurante de la base de datos
+    const restaurant = await prisma.restaurante.findUnique({
+      where: { id: parseInt(pedido.id_restaurante) }
+    });
+    // Obtén el plato de la base de datos
+    const plate = await prisma.plato.findFirst({
+      where: { nombre: pedido.plato.toString() }
+    });
+    
+    generarPDF(res, user, restaurant, plate, pedido, true);
         
     res.redirect('/pedidos');
   } catch (error) {
@@ -822,7 +851,6 @@ app.post('/orders/:id/update-quantity', estaLogeado, checkUserRole('cliente'), a
     res.status(500).send('Error al actualizar la cantidad del plato');
   }
 });
-
 
 
 // MOSTRAR TICKET
@@ -1641,7 +1669,7 @@ app.post('/admin/add-order', estaLogeado, checkUserRole('administrador'), async 
     */
 
     // create new order
-    const newPlate = await prisma.pedido.create({
+    const newOrder = await prisma.pedido.create({
       data: {
         id_usuario: Number(id_usuario),
         id_restaurante: Number(id_restaurante),
@@ -1654,6 +1682,22 @@ app.post('/admin/add-order', estaLogeado, checkUserRole('administrador'), async 
         nombre_repartidor: nombre_repartidor,
       },
     });
+    
+    /************** GENERAR PDF **************/
+    // Obtén el usuario de la base de datos
+    const user = await prisma.usuario.findUnique({
+      where: { id: parseInt(id_usuario) }
+    });
+    // Obtén el restaurante de la base de datos
+    const restaurant = await prisma.restaurante.findUnique({
+      where: { id: parseInt(id_restaurante) }
+    });
+    // Obtén el plato de la base de datos
+    const plate = await prisma.plato.findFirst({
+      where: { nombre: plato.toString() }
+    });
+
+    generarPDF(res, user, restaurant, plate, newOrder, false);
 
     res.redirect('/admin');
   } catch (error) {
@@ -1703,6 +1747,22 @@ app.post('/admin/update-order', estaLogeado, checkUserRole('administrador'), asy
       }
     });
 
+    /************** REGENERAR PDF **************/
+    // Obtén el usuario de la base de datos
+    const user = await prisma.usuario.findUnique({
+      where: { id: parseInt(id_usuario) }
+    });
+    // Obtén el restaurante de la base de datos
+    const restaurant = await prisma.restaurante.findUnique({
+      where: { id: parseInt(id_restaurante) }
+    });
+    // Obtén el plato de la base de datos
+    const plate = await prisma.plato.findFirst({
+      where: { nombre: plato.toString() }
+    });
+
+    generarPDF(res, user, restaurant, plate, updatedOrder, true);
+
     res.redirect('/admin');
   } catch (error) {
     // Manejo de errores
@@ -1718,9 +1778,12 @@ app.post('/admin/delete-order', estaLogeado, checkUserRole('administrador'), asy
 
   try {
     // Eliminar el pedido de la tabla de pedido
-    await prisma.pedido.delete({
+    const orderToDelete = await prisma.pedido.delete({
       where: { id: Number(id) }
     });
+    
+    /********** ELIMINAR PDF **********/
+    eliminarPDF(orderToDelete);
 
     res.redirect('/admin');
   } catch (error) {
