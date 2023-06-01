@@ -101,7 +101,7 @@ const transporter = nodemailer.createTransport({
 });
 
 
-async function verifyServer() {
+async function verifyEmailServer() {
   try {
     await transporter.verify();
     console.log('Servidor de correo iniciado');
@@ -115,7 +115,7 @@ async function verifyServer() {
     console.error('Error al iniciar el servidor de correo:', error);
   }
 }
-verifyServer();
+verifyEmailServer();
 
 // Set up the middleware
 app.use(express.static('public'));
@@ -255,14 +255,18 @@ function estaLogeado(req, res, next) {
     next();
     return;
   }
-  res.redirect("/login");
+  res.status(403).send("Acceso no permitido");
+  // res.redirect("/login");
 }
 
 function checkUserRole(requiredRole) {
   return function(req, res, next) {
     if (req.session.user && req.session.user.tipo_usuario === requiredRole) {
       next();
-    } else res.redirect("/login");
+    } else {
+      res.status(403).send("Acceso no permitido");
+      // res.redirect("/login");
+    }
   };
 }
 
@@ -274,6 +278,8 @@ function checkUserRole(requiredRole) {
 /****************** RUTAS ******************/
 /*******************************************/
 /*******************------******************/
+
+
 // PRINCIPAL
 app.get('/', (req, res) => {
   res.render('login', { error: null });
@@ -301,7 +307,7 @@ app.get('/restaurants', estaLogeado, checkUserRole('cliente'), async (req, res) 
           }
         });
       
-        console.log("averagePrice._avg.precio: " + averagePrice._avg.precio);
+        // console.log("averagePrice._avg.precio: " + averagePrice._avg.precio);
       
         return {
           restaurantId: restaurant.id,
@@ -619,8 +625,9 @@ app.get('/plates/:id/process', estaLogeado, checkUserRole('cliente'), async (req
       }
     });
     
-    let precioOriginal = currentPlate.precio;
+    let precioOriginal = currentPlate.precio.toFixed(2);
     if (currentPlate.precio < 10.00) currentPlate.precio += 3;
+    currentPlate.precio = currentPlate.precio.toFixed(2);
 
     res.render('process-order', { plate: currentPlate, precioOriginal: precioOriginal, user });
   } catch (error) {
