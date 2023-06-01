@@ -123,7 +123,7 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-app.use(session({
+app.use(session({ // aquí es donde viene la parte de cookie de sesión
   secret: '2C44-4D44-WppQ38S',
   resave: true,
   saveUninitialized: true
@@ -251,7 +251,7 @@ async function eliminarPDF(orderToDelete) {
 /* FUNCIONES PARA COMPROBAR LAS SESIONES Y EVITAR QUE SE INFILTREN */
 /*******************************************************************/
 function estaLogeado(req, res, next) {
-  if (req.session.user != undefined) {
+  if (req.session.hasOwnProperty("user")) {
     next();
     return;
   }
@@ -264,7 +264,7 @@ function checkUserRole(requiredRole) {
     if (req.session.user && req.session.user.tipo_usuario === requiredRole) {
       next();
     } else {
-      res.status(403).send("Acceso no permitido");
+      res.status(403).send("Acceso no permitido - tipo usuario incorrecto");
       // res.redirect("/login");
     }
   };
@@ -393,10 +393,8 @@ app.post('/login', async (req, res) => {
 
     // GUARDAR SESIÓN DEL USUARIO
     req.session.user = user;
-    // req.session.user.nombre_usuario = username;
-    // req.session.user.id = user.id;
-    console.log('user.id:' + user.id);
     req.session.save();
+    console.log('user.id:' + user.id);
 
     // Redirigir al usuario según su tipo de usuario
     switch (user.tipo_usuario) {
@@ -714,6 +712,16 @@ app.post('/orders/:id/change_status', estaLogeado, checkUserRole('cliente'), asy
   // console.log("estado : " + estado);
 
   try {
+    // Comprobar si el estado del pedido es entregado o en_proceso si se efectuo por parte del repartidor
+    const existingOrder = await prisma.pedido.findFirst({ where: { id: parseInt(id) } });
+    if (existingOrder.estado === 'entregado' || existingOrder.estado === 'en_proceso')
+    {
+      console.log("El repartidor ya había cambiado el estado y el cliente no actualizo su vista previa en ese momento");
+      // Redirige a la página de nuevo
+      res.redirect('/pedidos');
+      return;
+    }
+
     // Actualiza el estado del pedido en la base de datos
     const pedidos = await prisma.pedido.update({
       where: { id: parseInt(id) },
@@ -737,8 +745,15 @@ app.post('/orders/:id/delete-order', estaLogeado, checkUserRole('cliente'), asyn
   const { estado } = req.body;
 
   try {
-    // Comprobar si el estado del pedido es cancelado
-    // const existingOrder = await prisma.pedido.findFirst({ where: { id } });
+    // Comprobar si existe
+    const existingOrder = await prisma.pedido.findFirst({ where: { id: parseInt(id) } });
+    if (!existingOrder)
+    {
+      console.log("No existe");
+      // Redirige a la página de nuevo
+      res.redirect('/pedidos');
+      return;
+    }
     if (estado !== 'cancelado') {
       console.log("No se puede eliminar un pedido que no está cancelado");
       return;
@@ -989,6 +1004,15 @@ app.post('/repartidor/:id/estado', estaLogeado, checkUserRole('repartidor'), asy
   // console.log("estado : " + estado);
 
   try {
+    // Comprobar si el estado del pedido está eliminado por parte del cliente
+    const existingOrder = await prisma.pedido.findFirst({ where: { id: parseInt(id) } });
+    if (!existingOrder)
+    {
+      console.log("Ese pedido ha sido eliminado");
+      // Redirige a la página de nuevo
+      res.redirect('/repartidor');
+      return;
+    }
     // Actualiza el estado del pedido en la base de datos
     const pedidos = await prisma.pedido.update({
       where: { id: parseInt(id) },
