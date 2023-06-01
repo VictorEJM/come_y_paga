@@ -3,7 +3,7 @@ Aplicación del Come Y Paga de la práctica final de Interfaces de 2ºDAM
 
 Tratando de hacerlo en Flutter, NodeJS o algún framework que vaya más cómodo. Además con una BBDD con MySQL, SQLite o alguna que vaya mejor.
 
-Conclusión: se tomó la decisión de hacerlo en NodeJS para poder completar la arquitectura cliente-servidor.
+Conclusión: se tomó la decisión de hacerlo en NodeJS para poder completar la arquitectura cliente-servidor. La BBDD es MySQL y usa Prisma como ORM.
 
 ## Cómo instalar
 Necesitas NodeJS y seguir los siguientes comandos en la consola PowerShell:
